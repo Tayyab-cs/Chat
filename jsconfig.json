@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ES2021",
+        "lib": [
+            "es2021.intl",
+            "ESNext.AsyncIterable"
+        ],
+        "typeRoots": [],
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "module": "ES6",
+        "pretty": true,
+        "sourceMap": true,
+        "outDir": "./build",
+        "allowJs": true,
+        "noEmit": false,
+        "esModuleInterop": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "tests"
+    ]
+}
