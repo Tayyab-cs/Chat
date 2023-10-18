@@ -1,7 +1,7 @@
 import User from './user.js';
 import Conversation from './conversation.js';
 import Message from './message.js';
-import UserConversation from './userConversation.js';
+import UserConversation from './conversation.js';
 
 var Model = {
   User,

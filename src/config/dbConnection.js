@@ -4,6 +4,7 @@ import { DBConfig } from './dbConfig.js';
 import UserModel from '../apis/models/user.js';
 import MessageModel from '../apis/models/message.js';
 import ConversationModel from '../apis/models/conversation.js';
+import UserConversationModel from '../apis/models/userConversation.js';
 
 const { username, password, database, host, dialect } = DBConfig.development;
 
@@ -21,8 +22,12 @@ const sequelize = new Sequelize({
 const User = UserModel(sequelize, DataTypes);
 const Conversation = ConversationModel(sequelize, DataTypes);
 const Message = MessageModel(sequelize, DataTypes);
+const UserConversation = UserConversationModel(sequelize, DataTypes);
 
-User.belongsToMany(Conversation, { through: 'UserConversation' });
+// User Association...
+User.belongsTo(UserConversation, {
+  foreignKey: 'userId',
+});
 User.hasMany(Message, {
   as: 'sentMessages',
   foreignKey: 'senderId',
@@ -35,22 +40,29 @@ Message.belongsTo(User, {
   as: 'sender',
   foreignKey: 'senderId',
 });
+
+// Message Association...
 Message.belongsTo(User, {
   as: 'receiver',
-  foreignKey: 'receiverId',
+  foreignKey: { name: 'receiverId', allowNull: true },
 });
-Message.belongsTo(Conversation);
+Message.belongsTo(Conversation, { foreignKey: 'conversationId' });
 
-Conversation.belongsToMany(User, { through: 'UserConversation' });
-Conversation.hasOne(Message);
+// Conversation Association...
+Conversation.belongsTo(UserConversation, { foreignKey: 'conversationId' });
+Conversation.hasMany(Message, { foreignKey: 'conversationId' });
+
+// UserConversation Association...
+UserConversation.hasMany(User, { foreignKey: 'userId' });
+UserConversation.hasMany(Conversation, { foreignKey: 'conversationId' });
 
 (async () => {
   try {
     await sequelize.sync({ alter: false, force: false });
-    console.log('Database synchronized successfully');
+    Logger.info('✔ Database synchronized successfully');
   } catch (error) {
-    console.log(error);
-    console.error('Error synchronizing the database:');
+    Logger.error(error);
+    Logger.error('❌ Error synchronizing the database:');
   }
 })();
 

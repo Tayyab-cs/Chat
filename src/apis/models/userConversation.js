@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
-  const userConversation = sequelize.define(
-    'userConversation',
+  const UserConversation = sequelize.define(
+    'UserConversation',
     {
       userId: {
         type: DataTypes.INTEGER,
@@ -16,5 +16,6 @@ export default (sequelize, DataTypes) => {
       freezeTableName: true,
     },
   );
-  return userConversation;
+
+  return UserConversation;
 };

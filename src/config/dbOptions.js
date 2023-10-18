@@ -1,4 +1,4 @@
 export const DBOptions = {
   force: false,
-  alter: true,
+  alter: false,
 };

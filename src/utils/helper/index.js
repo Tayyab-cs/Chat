@@ -1,11 +1,2 @@
-import { createToken } from './general.js';
-import { onMessage, onConnection, onDisconnect } from './socket.js';
-
-const helper = {
-  createToken,
-  onMessage,
-  onConnection,
-  onDisconnect,
-};
-
-export default helper;
+export * from './general.js';
+export * from './socket.js';

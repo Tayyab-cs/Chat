@@ -1,4 +1,4 @@
-import helper from '../../utils/helper/index.js';
+import { createToken } from '../../utils/helper/index.js';
 import { Logger } from '../../utils/logger.js';
 import {
   findByEmail,
@@ -15,8 +15,8 @@ export const signUp = async (req, res, next) => {
     await findByEmail(email);
     await create({ firstName, lastName, userName, email, password, phoneNo });
 
-    const accessToken = helper.createToken(email, password);
-    const refreshToken = helper.createToken(email, password);
+    const accessToken = createToken(email, password);
+    const refreshToken = createToken(email, password);
 
     Logger.info('==> User SignUp Successfully');
     return res.status(201).json({
@@ -46,8 +46,8 @@ export const login = async (req, res, next) => {
     const user = await findUser(email);
     await comparePassword(password, user.password);
 
-    const accessToken = helper.createToken(email, password);
-    const refreshToken = helper.createToken(email, password);
+    const accessToken = createToken(email, password);
+    const refreshToken = createToken(email, password);
 
     Logger.info('==> User login Successfully...');
     return res.status(201).json({

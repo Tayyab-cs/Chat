@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import Config from '../../config/index.js';
 import { Logger } from '../../utils/logger.js';
 import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
