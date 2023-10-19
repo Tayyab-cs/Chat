@@ -4,11 +4,11 @@ export default (sequelize, DataTypes) => {
     {
       firstName: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       lastName: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       userName: {
         type: DataTypes.STRING,
@@ -28,7 +28,7 @@ export default (sequelize, DataTypes) => {
       },
       phoneNo: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
       },
       socketId: {

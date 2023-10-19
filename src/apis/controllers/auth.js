@@ -10,10 +10,10 @@ import {
 export const signUp = async (req, res, next) => {
   Logger.info('==> SignUp Controller...');
 
-  const { firstName, lastName, userName, email, password, phoneNo } = req.body;
+  const { userName, email, password } = req.body;
   try {
     await findByEmail(email);
-    await create({ firstName, lastName, userName, email, password, phoneNo });
+    await create({ userName, email, password });
 
     const accessToken = createToken(email, password);
     const refreshToken = createToken(email, password);
@@ -23,12 +23,9 @@ export const signUp = async (req, res, next) => {
       success: true,
       message: '==> User SignUp Successfully',
       user: {
-        firstName,
-        lastName,
         userName,
         email,
         password,
-        phoneNo,
       },
       accessToken,
       refreshToken,

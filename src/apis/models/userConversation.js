@@ -5,10 +5,18 @@ export default (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'User',
+          key: 'id',
+        },
       },
       conversationId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'Conversation',
+          key: 'id',
+        },
       },
     },
     {

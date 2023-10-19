@@ -24,41 +24,94 @@ const Conversation = ConversationModel(sequelize, DataTypes);
 const Message = MessageModel(sequelize, DataTypes);
 const UserConversation = UserConversationModel(sequelize, DataTypes);
 
-// User Association...
-User.belongsTo(UserConversation, {
-  foreignKey: 'userId',
-});
+// User (1->M) Message
 User.hasMany(Message, {
   as: 'sentMessages',
-  foreignKey: 'senderId',
-});
-User.hasMany(Message, {
-  as: 'receivedMessages',
-  foreignKey: 'receiverId',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'senderId', allowNull: true },
 });
 Message.belongsTo(User, {
   as: 'sender',
-  foreignKey: 'senderId',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'senderId', allowNull: true },
 });
 
-// Message Association...
-Message.belongsTo(User, {
-  as: 'receiver',
+User.hasMany(Message, {
+  as: 'receivedMessages',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
   foreignKey: { name: 'receiverId', allowNull: true },
 });
-Message.belongsTo(Conversation, { foreignKey: 'conversationId' });
+Message.belongsTo(User, {
+  as: 'receiver',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'receiverId', allowNull: true },
+});
 
-// Conversation Association...
-Conversation.belongsTo(UserConversation, { foreignKey: 'conversationId' });
-Conversation.hasMany(Message, { foreignKey: 'conversationId' });
+// User M<->M Conversation through UserConversation
+User.belongsToMany(Conversation, {
+  as: 'conversations',
+  through: UserConversation,
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'userId', allowNull: true },
+});
+Conversation.belongsToMany(User, {
+  as: 'users',
+  through: UserConversation,
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'conversationId', allowNull: true },
+});
 
-// UserConversation Association...
-UserConversation.hasMany(User, { foreignKey: 'userId' });
-UserConversation.hasMany(Conversation, { foreignKey: 'conversationId' });
+// User 1->M UserConversation
+User.hasMany(UserConversation, {
+  as: 'userConversations',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'userId', allowNull: true },
+});
+UserConversation.belongsTo(User, {
+  as: 'users',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'userId', allowNull: true },
+});
+
+// Conversation (1->M) UserConversation
+Conversation.hasMany(UserConversation, {
+  as: 'userConversations',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'conversationId', allowNull: true },
+});
+UserConversation.belongsTo(Conversation, {
+  as: 'conversations',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'conversationId', allowNull: true },
+});
+
+// Conversation (1->M) Message
+Conversation.hasMany(Message, {
+  as: 'messages',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'conversationId', allowNull: true },
+});
+Message.belongsTo(Conversation, {
+  as: 'conversations',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+  foreignKey: { name: 'conversationId', allowNull: true },
+});
 
 (async () => {
   try {
-    await sequelize.sync({ alter: false, force: false });
+    await sequelize.sync({ alter: true, force: false });
     Logger.info('✔ Database synchronized successfully');
   } catch (error) {
     Logger.error(error);

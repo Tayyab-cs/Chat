@@ -3,6 +3,7 @@ import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
 import { generateRoomID } from '../../utils/helper/index.js';
 
+// GROUP SERVICES...
 export const createGroupService = async (data) => {
   const { groupName, description, creatorId, participants } = data;
   const roomId = generateRoomID(8);
@@ -58,6 +59,14 @@ export const joinGroupService = async (data) => {
   return true;
 };
 
+export const getGroupService = async (data) => {
+  Logger.info('Get Group Service Triggered');
+  const { isGroup } = data;
+  const groups = await models.Conversation.findAll({ where: { isGroup } });
+  return groups;
+};
+
+// CHANNEL APIS...
 export const createChannelService = async (data) => {
   const { creatorId, channelName, description, type, participants } = data;
 
@@ -107,4 +116,41 @@ export const joinChannelService = async (data) => {
   });
   if (!userCon) throw errorObject('Failed to Join');
   return userCon;
+};
+
+export const getChannelService = async (data) => {
+  Logger.info('Get Channel Service Triggered');
+  let { isChannel } = data;
+  console.log(isChannel);
+  isChannel = Boolean(isChannel);
+  let channels = await models.Conversation.findAndCountAll({
+    where: {
+      isChannel,
+    },
+    raw: true,
+  });
+  // channels = JSON.parse(JSON.stringify(channels));
+  console.log(channels);
+  return channels;
+};
+
+export const getDashboardService = async (data) => {
+  Logger.info('Get DashBoard service triggered');
+  const { email } = data;
+  console.log(email);
+
+  // User...
+  let user = await models.User.findOne({
+    where: { email },
+    include: [
+      {
+        model: models.Conversation,
+        as: 'conversations',
+      },
+    ],
+  });
+  user = JSON.parse(JSON.stringify(user));
+  console.dir('----------------------');
+  console.dir(user, { depth: null });
+  console.dir('----------------------');
 };

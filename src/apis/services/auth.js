@@ -12,14 +12,11 @@ export const findByEmail = async (email) => {
 
 export const create = async (userData) => {
   Logger.info('==> User Create Service...');
-  const { firstName, lastName, userName, email, password, phoneNo } = userData;
+  const { userName, email, password } = userData;
   const result = await models.User.create({
-    firstName,
-    lastName,
     userName,
     email,
     password,
-    phoneNo,
   });
   if (!result) throw errorObject('==> User not Created!');
   return result;
