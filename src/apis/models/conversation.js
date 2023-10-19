@@ -2,7 +2,6 @@ export default (sequelize, DataTypes) => {
   const Conversation = sequelize.define(
     'Conversation',
     {
-      // name: userName, groupName
       name: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -16,6 +15,10 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
       },
       isGroup: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+      },
+      isChannel: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },

@@ -6,6 +6,7 @@ import {
   onDisconnect,
   onGroupMessage,
   onMessage,
+  onChannelMessage,
 } from '../utils/helper/index.js';
 import { Logger } from '../utils/logger.js';
 
@@ -16,10 +17,10 @@ export default () => {
   const io = new Server(httpServer, { cors: { origin: '*' } });
 
   io.on('connection', (socket) => {
-    Logger.info(`⚡ User Connected`);
+    Logger.info(`⚡ User Connected ⚡`);
 
     socket.on('connection', async (data) => {
-      Logger.info('Connection Socket Triggered');
+      Logger.info('⚡ Connection Socket Triggered');
       const dataObj = {
         socketId: socket.id,
         senderId: data.senderId,
@@ -28,16 +29,28 @@ export default () => {
       socket.emit('connection-status', connectionStatus);
     });
     socket.on('message', async (data) => {
-      Logger.info('Message Socket Triggered');
+      Logger.info('⚡ Message Socket Triggered');
       const roomID = await onMessage(data);
-      socket.join(roomID);
-      io.to(roomID).emit('message-status', data);
+      if (roomID.length == 8) {
+        socket.join(roomID);
+        io.to(roomID).emit('message-status', data);
+      }
     });
     socket.on('group-message', async (data) => {
-      Logger.info('Group Message Socket Triggered');
+      Logger.info('⚡ Group Message Socket Triggered');
       const roomID = await onGroupMessage(data);
-      socket.join(roomID);
-      io.to(roomID).emit('message-status', data);
+      if (roomID.length == 8) {
+        socket.join(roomID);
+        io.to(roomID).emit('message-status', data);
+      }
+    });
+    socket.on('channel-message', async (data) => {
+      Logger.info('⚡ Channel Message Socket Triggered');
+      const roomID = await onChannelMessage(data);
+      if (roomID.length == 8) {
+        socket.join(roomID);
+        io.to(roomID).emit('channel-status', data);
+      }
     });
 
     // socket.on('create-group', async (data) => {
@@ -52,9 +65,9 @@ export default () => {
     //   console.log(group);
     // });
     socket.on('disconnect', async () => {
-      Logger.info('Disconnect Socket Triggered');
+      Logger.info('⚡Disconnect Socket Triggered');
       await onDisconnect(socket.id);
-      Logger.info('⚡ User disconnected.');
+      Logger.info('⚡ User disconnected ⚡');
     });
   });
 

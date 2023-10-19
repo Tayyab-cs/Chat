@@ -92,6 +92,40 @@ export const onGroupMessage = async (data) => {
   return con.roomId;
 };
 
+export const onChannelMessage = async (data) => {
+  const { senderId, conversationId, message } = data;
+
+  const con = await models.Conversation.findOne({
+    where: { id: conversationId },
+  });
+  if (!con || !con.isChannel) return Logger.error('Channel not exists!');
+
+  if (con.type === 'public') {
+    await models.Message.create({
+      senderId,
+      conversationId,
+      message,
+    });
+    return con.roomId;
+  }
+
+  if (con.type === 'private') {
+    const userCon = await models.UserConversation.findOne({
+      where: { userId: senderId, conversationId },
+    });
+    if (!userCon) return Logger.error('user not a member of group');
+
+    await models.Message.create({
+      senderId,
+      conversationId,
+      message,
+    });
+    return con.roomId;
+  }
+
+  return Logger.error('message not delivered!');
+};
+
 // const onCreateGroup = async (data) => {
 //   const { groupName, description, creatorId, participants } = data;
 //   const roomId = generateRoomID(8);
