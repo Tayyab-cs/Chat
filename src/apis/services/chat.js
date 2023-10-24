@@ -2,10 +2,12 @@ import { Logger } from '../../utils/logger.js';
 import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
 import { generateRoomID } from '../../utils/helper/index.js';
+import { Op, fn, literal } from 'sequelize';
 
 // GROUP SERVICES...
 export const createGroupService = async (data) => {
   const { groupName, description, creatorId, participants } = data;
+
   const roomId = generateRoomID(8);
 
   const totalParticipants = participants.reduce((acc, cv) => {
@@ -59,11 +61,20 @@ export const joinGroupService = async (data) => {
   return true;
 };
 
-export const getGroupService = async (data) => {
+export const getGroupService = async (userId) => {
   Logger.info('Get Group Service Triggered');
-  const { isGroup } = data;
-  const groups = await models.Conversation.findAll({ where: { isGroup } });
-  return groups;
+  const { id } = userId;
+  const groups = await models.Conversation.findAll({
+    where: { isGroup: true },
+  });
+  const data = groups.filter(async (val) => {
+    const groupId = val.id;
+    const userInGroup = await models.UserConversation.findAll({
+      where: { userId: id, conversationId: groupId },
+    });
+    return userInGroup;
+  });
+  return data;
 };
 
 // CHANNEL APIS...
@@ -136,20 +147,31 @@ export const getChannelService = async (data) => {
 
 export const getDashboardService = async (data) => {
   Logger.info('Get DashBoard service triggered');
-  const { email } = data;
+  const { id } = data;
 
   // User...
   let userData = await models.User.findOne({
-    where: { email },
+    where: { id },
     include: [
       {
+        required: false,
         model: models.Conversation,
         as: 'conversations',
+        include: [
+          {
+            required: false,
+            model: models.Message,
+            as: 'messages',
+            where: { isRead: false },
+          },
+        ],
       },
     ],
+    distinct: true,
   });
   userData = JSON.parse(JSON.stringify(userData));
 
+  // mapping user conversations...
   const conversation = userData.conversations.map((data) => {
     return {
       id: data.id,
@@ -159,14 +181,17 @@ export const getDashboardService = async (data) => {
       ischannel: data.isChannel,
       participants: data.participants,
       roomid: data.roomId,
+      message: data.messages.map((msg) => msg.message),
+      unreadMsgs: data.messages.length,
     };
   });
+  console.dir(conversation, { depth: null });
 
   const singleChat = [];
   const group = [];
   const channel = [];
 
-  const user = conversation.map((data) => {
+  const user = conversation.map(async (data) => {
     if (data.isgroup == true) {
       group.push(data);
     } else if (data.ischannel == true) {
@@ -183,19 +208,59 @@ export const getDashboardService = async (data) => {
   });
 
   console.dir('----------------------');
-  console.dir(user[0], { depth: null });
+  // console.dir(user[0], { depth: null });
   console.dir('----------------------');
   return user[0];
 };
 
-export const fetchChatService = async (senderId, receiverId) => {
+export const fetchChatService = async (senderId, receiverId, page, limit) => {
   Logger.info('Fetch Chat Service Triggered');
-  console.log(senderId, receiverId);
 
-  const userChat = await models.Message.findAll({
-    where: { senderId: senderId, receiverId: receiverId },
+  page = parseInt(page, 10);
+  limit = parseInt(limit, 10);
+
+  const offset = (page - 1) * limit;
+
+  const user = await models.Message.findAll({
+    where: {
+      [Op.or]: [
+        { senderId: senderId, receiverId: receiverId },
+        { senderId: receiverId, receiverId: senderId },
+      ],
+    },
+    limit: limit,
+    offset: offset,
+    order: [['createdAt', 'DESC']],
     raw: true,
   });
-  console.log(userChat);
-  return userChat;
+  const totalChat = await models.Message.findAll({
+    where: {
+      [Op.or]: [
+        { senderId: senderId, receiverId: receiverId },
+        { senderId: receiverId, receiverId: senderId },
+      ],
+    },
+  });
+  const count = totalChat.length;
+
+  const data = {
+    user,
+    count,
+  };
+
+  return data;
+};
+
+export const unreadChatService = async (senderId, receiverId) => {
+  const msg = await models.Message.findAll({
+    where: {
+      [Op.or]: [
+        { senderId: senderId, receiverId: receiverId },
+        { senderId: receiverId, receiverId: senderId },
+      ],
+      isRead: false,
+    },
+  });
+
+  return msg;
 };

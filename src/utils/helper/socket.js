@@ -2,12 +2,20 @@ import { Logger } from '../logger.js';
 import { models } from '../../config/dbConnection.js';
 
 export const onConnection = async (data) => {
-  const { socketId, senderId } = data;
+  const { socketId, senderId, receiverId } = data;
   try {
     const user = await models.User.findOne({ where: { id: senderId } });
     if (!user) return Logger.error('Sender not Found!');
+    const msg = await models.Message.update(
+      { isRead: true },
+      {
+        where: { receiverId: user.id, senderId: receiverId, isRead: false },
+      },
+    );
+    console.log(msg);
     return user.update({
       socketId,
+      isOnline: true,
     });
   } catch (error) {
     return Logger.error(error);
@@ -27,6 +35,20 @@ export const onMessage = async (data) => {
     where: { id: receiverId },
     raw: true,
   });
+
+  // Checking ONLINE/OFFLINE Status...
+  if (receiver.isOnline == true) {
+    const recCon = await models.Conversation.findOne({
+      where: { id: receiverId },
+    });
+
+    if (recCon.dataValues.roomId == receiver.roomId) {
+      await senderReceiver.update({ isRead: true });
+    }
+  } else {
+    await senderReceiver.update({ isRead: false });
+  }
+
   const conversationObj = {
     name: receiver.userName,
     isGroup: false,
@@ -34,6 +56,7 @@ export const onMessage = async (data) => {
     roomId,
   };
 
+  // Creating New Conversation...
   if (!senderReceiver) {
     const conversation = await models.Conversation.create(conversationObj);
     const userCon = await models.UserConversation.bulkCreate([
@@ -49,6 +72,8 @@ export const onMessage = async (data) => {
 
     if (!conversation || !userCon)
       return Logger.error('Conversation not created!');
+
+    // saving message...
     await models.Message.create({
       senderId,
       receiverId,
@@ -58,6 +83,7 @@ export const onMessage = async (data) => {
     return conversation.roomId;
   }
 
+  // Updating Existing Conversation...
   const conversation = await models.Conversation.findOne({
     where: { id: senderReceiver.conversationId },
   });
@@ -69,6 +95,7 @@ export const onMessage = async (data) => {
     message,
     conversationId: conversation.id,
   });
+
   return conversation.roomId;
 };
 
@@ -78,6 +105,7 @@ export const onDisconnect = async (socketId) => {
     if (!user) return Logger.info('User Offline');
     return user.update({
       socketId: null,
+      isOnline: false,
     });
   } catch (error) {
     return Logger.error(error);

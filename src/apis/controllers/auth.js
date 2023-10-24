@@ -48,7 +48,6 @@ export const login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const user = await findUser(email);
-    console.log(user);
     await comparePassword(password, user.password);
 
     const accessToken = createToken(user.id, email);

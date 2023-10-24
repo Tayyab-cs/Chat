@@ -30,6 +30,14 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      roomId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      isOnline: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       paranoid: true,

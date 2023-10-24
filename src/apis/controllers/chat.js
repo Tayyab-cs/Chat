@@ -9,11 +9,13 @@ import {
   getChannelService,
   getDashboardService,
   fetchChatService,
+  unreadChatService,
 } from '../services/index.js';
 
 // GROUP APIs
 export const createGroup = async (req, res, next) => {
   Logger.info('Create Group Controller Triggered');
+  const { id } = req.user;
   try {
     const group = await createGroupService(req.body);
     if (!group) throw new Error('Failed to create a group!');
@@ -44,13 +46,14 @@ export const joinGroup = async (req, res, next) => {
 
 export const getGroups = async (req, res, next) => {
   Logger.info('Get Group Controller Triggered');
+
   try {
-    const groups = await getGroupService(req.query);
+    const data = await getGroupService(req.user);
     Logger.info('Group fetched Successfully');
     return res.status(201).json({
       success: true,
       message: 'Group fetched Successfully',
-      result: groups,
+      result: { data },
     });
   } catch (error) {
     return next(error);
@@ -119,7 +122,6 @@ export const getChannels = async (req, res, next) => {
 export const dashboard = async (req, res, next) => {
   Logger.info('Dashboard Controller Triggered');
   try {
-    console.log(req.user);
     const userData = await getDashboardService(req.user);
     Logger.info('userData fetched Successfully');
     return res.status(201).json({
@@ -128,6 +130,8 @@ export const dashboard = async (req, res, next) => {
       result: { userData },
     });
   } catch (error) {
+    console.log('.........................');
+    console.log(error);
     return next(error);
   }
 };
@@ -137,15 +141,33 @@ export const fetchChat = async (req, res, next) => {
   Logger.info('Fetch Chat Controller Triggered');
   const { id } = req.user;
   const { receiverId } = req.params;
-  console.log(id, receiverId);
+  const { page, limit } = req.query;
 
   try {
-    const data = await fetchChatService(id, receiverId);
-    console.log(data);
+    const data = await fetchChatService(id, receiverId, page, limit);
     Logger.info('Chat fetched Successfully');
     return res.status(201).json({
       success: true,
       message: 'Chat fetched Successfully',
+      result: { data },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Fetch unRead Chat...
+export const unreadChat = async (req, res, next) => {
+  Logger.info('UnRead Chat Controller Triggered');
+  const { id } = req.user;
+  const { receiverId } = req.params;
+
+  try {
+    const data = await unreadChatService(id, receiverId);
+    Logger.info('UnRead Chat fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'UnRead Chat fetched Successfully',
       result: { data },
     });
   } catch (error) {

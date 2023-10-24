@@ -25,10 +25,11 @@ export default () => {
       const dataObj = {
         socketId: socket.id,
         senderId: data.senderId,
+        receiverId: data.receiverId,
       };
       const joinStatus = await onConnection(dataObj);
       socket.join(data.roomId);
-      // socket.emit('join-status', joinStatus);
+      socket.emit('join-status', { online: joinStatus.isOnline });
     });
 
     // Typing...
@@ -43,9 +44,15 @@ export default () => {
       const roomID = await onMessage(data);
       console.log(roomID);
       if (roomID.length == 8) {
+        // && online &&
         // socket.join(roomID);
         io.in(roomID).emit('message-status', data);
       }
+    });
+
+    // Other Message...
+    socket.on('otherMessage', async (data) => {
+      Logger.info('⚡ Message Socket Triggered');
     });
 
     // Group Messaging...

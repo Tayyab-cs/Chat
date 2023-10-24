@@ -8,6 +8,7 @@ import {
   getChannels,
   dashboard,
   fetchChat,
+  unreadChat,
 } from '../controllers/index.js';
 import { decryptToken } from '../../middlewares/general.js';
 
@@ -15,11 +16,12 @@ const route = express.Router();
 
 // Fetch Chat from DB...
 route.get('/fetchChat/:receiverId', decryptToken, fetchChat);
+route.get('/unreadChat/:receiverId', decryptToken, unreadChat);
 
 // Group Routes...
-route.post('/createGroup', createGroup);
+route.post('/createGroup', decryptToken, createGroup);
 route.post('/joinGroup', joinGroup);
-route.get('/getGroups', getGroups);
+route.get('/getGroups', decryptToken, getGroups);
 
 // Channel Routes...
 route.post('/createChannel', decryptToken, createChannel);
