@@ -2,14 +2,6 @@ export default (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
-      firstName: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      lastName: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
       userName: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -26,10 +18,13 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      phoneNo: {
+      isAvatarSet: {
+        type: DataTypes.BOOLEAN,
+        default: false,
+      },
+      avatarImage: {
         type: DataTypes.STRING,
-        allowNull: true,
-        unique: true,
+        default: '',
       },
       socketId: {
         type: DataTypes.STRING,

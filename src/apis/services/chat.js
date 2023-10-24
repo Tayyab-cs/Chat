@@ -137,10 +137,9 @@ export const getChannelService = async (data) => {
 export const getDashboardService = async (data) => {
   Logger.info('Get DashBoard service triggered');
   const { email } = data;
-  console.log(email);
 
   // User...
-  let user = await models.User.findOne({
+  let userData = await models.User.findOne({
     where: { email },
     include: [
       {
@@ -149,8 +148,54 @@ export const getDashboardService = async (data) => {
       },
     ],
   });
-  user = JSON.parse(JSON.stringify(user));
+  userData = JSON.parse(JSON.stringify(userData));
+
+  const conversation = userData.conversations.map((data) => {
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      isgroup: data.isGroup,
+      ischannel: data.isChannel,
+      participants: data.participants,
+      roomid: data.roomId,
+    };
+  });
+
+  const singleChat = [];
+  const group = [];
+  const channel = [];
+
+  const user = conversation.map((data) => {
+    if (data.isgroup == true) {
+      group.push(data);
+    } else if (data.ischannel == true) {
+      channel.push(data);
+    } else {
+      singleChat.push(data);
+    }
+
+    return {
+      singlechat: singleChat,
+      group: group,
+      channel: channel,
+    };
+  });
+
   console.dir('----------------------');
-  console.dir(user, { depth: null });
+  console.dir(user[0], { depth: null });
   console.dir('----------------------');
+  return user[0];
+};
+
+export const fetchChatService = async (senderId, receiverId) => {
+  Logger.info('Fetch Chat Service Triggered');
+  console.log(senderId, receiverId);
+
+  const userChat = await models.Message.findAll({
+    where: { senderId: senderId, receiverId: receiverId },
+    raw: true,
+  });
+  console.log(userChat);
+  return userChat;
 };

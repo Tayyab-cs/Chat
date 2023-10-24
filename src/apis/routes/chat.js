@@ -7,10 +7,14 @@ import {
   getGroups,
   getChannels,
   dashboard,
+  fetchChat,
 } from '../controllers/index.js';
 import { decryptToken } from '../../middlewares/general.js';
 
 const route = express.Router();
+
+// Fetch Chat from DB...
+route.get('/fetchChat/:receiverId', decryptToken, fetchChat);
 
 // Group Routes...
 route.post('/createGroup', createGroup);

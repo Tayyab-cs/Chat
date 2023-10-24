@@ -21,8 +21,21 @@ export const onMessage = async (data) => {
   const senderReceiver = await models.Message.findOne({
     where: { senderId, receiverId },
   });
+
+  // finding receiver for creating conversation with him...
+  const receiver = await models.User.findOne({
+    where: { id: receiverId },
+    raw: true,
+  });
+  const conversationObj = {
+    name: receiver.userName,
+    isGroup: false,
+    isChannel: false,
+    roomId,
+  };
+
   if (!senderReceiver) {
-    const conversation = await models.Conversation.create({ roomId });
+    const conversation = await models.Conversation.create(conversationObj);
     const userCon = await models.UserConversation.bulkCreate([
       {
         userId: senderId,

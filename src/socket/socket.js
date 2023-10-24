@@ -19,37 +19,52 @@ export default () => {
   io.on('connection', (socket) => {
     Logger.info(`⚡ User Connected ⚡`);
 
-    socket.on('connection', async (data) => {
-      Logger.info('⚡ Connection Socket Triggered');
+    // Joining...
+    socket.on('join', async (data) => {
+      Logger.info('⚡ Join Socket Triggered');
       const dataObj = {
         socketId: socket.id,
         senderId: data.senderId,
       };
-      const connectionStatus = await onConnection(dataObj);
-      socket.emit('connection-status', connectionStatus);
+      const joinStatus = await onConnection(dataObj);
+      socket.join(data.roomId);
+      // socket.emit('join-status', joinStatus);
     });
+
+    // Typing...
+    socket.on('typing', async (data) => {
+      Logger.info('⚡ Typing Socket Triggered');
+      if (data.typing == true) io.emit('typing-status', data);
+    });
+
+    // Messaging...
     socket.on('message', async (data) => {
       Logger.info('⚡ Message Socket Triggered');
       const roomID = await onMessage(data);
+      console.log(roomID);
       if (roomID.length == 8) {
-        socket.join(roomID);
-        io.to(roomID).emit('message-status', data);
+        // socket.join(roomID);
+        io.in(roomID).emit('message-status', data);
       }
     });
+
+    // Group Messaging...
     socket.on('group-message', async (data) => {
       Logger.info('⚡ Group Message Socket Triggered');
       const roomID = await onGroupMessage(data);
       if (roomID.length == 8) {
         socket.join(roomID);
-        io.to(roomID).emit('message-status', data);
+        io.to(roomID).emit('group-message-status', data);
       }
     });
+
+    // Channel Messaging...
     socket.on('channel-message', async (data) => {
       Logger.info('⚡ Channel Message Socket Triggered');
       const roomID = await onChannelMessage(data);
       if (roomID.length == 8) {
         socket.join(roomID);
-        io.to(roomID).emit('channel-status', data);
+        io.to(roomID).emit('channel-message-status', data);
       }
     });
 

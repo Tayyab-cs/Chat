@@ -8,6 +8,7 @@ import {
   getGroupService,
   getChannelService,
   getDashboardService,
+  fetchChatService,
 } from '../services/index.js';
 
 // GROUP APIs
@@ -19,7 +20,7 @@ export const createGroup = async (req, res, next) => {
     Logger.info('Group Created Successfully');
     return res.status(201).json({
       success: true,
-      message: '==> Group Created Successfully',
+      message: 'Group Created Successfully',
     });
   } catch (error) {
     return next(error);
@@ -34,7 +35,7 @@ export const joinGroup = async (req, res, next) => {
     Logger.info('Group Joined Successfully');
     return res.status(201).json({
       success: true,
-      message: '==> Group Joined Successfully',
+      message: 'Group Joined Successfully',
     });
   } catch (error) {
     return next(error);
@@ -49,7 +50,7 @@ export const getGroups = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: 'Group fetched Successfully',
-      groups,
+      result: groups,
     });
   } catch (error) {
     return next(error);
@@ -70,8 +71,8 @@ export const createChannel = async (req, res, next) => {
     Logger.info('Channel created Successfully');
     return res.status(201).json({
       success: true,
-      message: '==> Channel created Successfully',
-      channel,
+      message: 'Channel created Successfully',
+      result: channel,
     });
   } catch (error) {
     return next(error);
@@ -91,7 +92,7 @@ export const joinChannel = async (req, res, next) => {
     Logger.info('Channel Joined Successfully');
     return res.status(201).json({
       success: true,
-      message: '==> Channel Joined Successfully',
+      message: 'Channel Joined Successfully',
     });
   } catch (error) {
     return next(error);
@@ -107,7 +108,7 @@ export const getChannels = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: 'Channels fetched Successfully',
-      channels,
+      result: channels,
     });
   } catch (error) {
     return next(error);
@@ -118,13 +119,34 @@ export const getChannels = async (req, res, next) => {
 export const dashboard = async (req, res, next) => {
   Logger.info('Dashboard Controller Triggered');
   try {
-    const channels = await getDashboardService(req.user);
-    console.log(channels);
-    Logger.info('Channels fetched Successfully');
+    console.log(req.user);
+    const userData = await getDashboardService(req.user);
+    Logger.info('userData fetched Successfully');
     return res.status(201).json({
       success: true,
-      message: 'Channels fetched Successfully',
-      channels,
+      message: 'userData fetched Successfully',
+      result: { userData },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Fetch Chat...
+export const fetchChat = async (req, res, next) => {
+  Logger.info('Fetch Chat Controller Triggered');
+  const { id } = req.user;
+  const { receiverId } = req.params;
+  console.log(id, receiverId);
+
+  try {
+    const data = await fetchChatService(id, receiverId);
+    console.log(data);
+    Logger.info('Chat fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Chat fetched Successfully',
+      result: { data },
     });
   } catch (error) {
     return next(error);
