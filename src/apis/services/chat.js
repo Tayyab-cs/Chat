@@ -173,6 +173,10 @@ export const getDashboardService = async (data) => {
 
   // mapping user conversations...
   const conversation = userData.conversations.map((data) => {
+    console.log('-------------------------------');
+    console.dir(data, { depth: null });
+    console.log('-------------------------------');
+
     return {
       id: data.id,
       name: data.name,
@@ -185,7 +189,6 @@ export const getDashboardService = async (data) => {
       unreadMsgs: data.messages.length,
     };
   });
-  console.dir(conversation, { depth: null });
 
   const singleChat = [];
   const group = [];

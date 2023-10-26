@@ -3,6 +3,8 @@ import { Server } from 'socket.io';
 import { createServer } from 'http';
 import {
   onConnection,
+  joinConversation,
+  onReceived,
   onDisconnect,
   onGroupMessage,
   onMessage,
@@ -16,21 +18,42 @@ const httpServer = createServer(app);
 export default () => {
   const io = new Server(httpServer, { cors: { origin: '*' } });
 
-  io.on('connection', (socket) => {
+  io.on('connect', (socket) => {
     Logger.info(`⚡ User Connected ⚡`);
 
-    // Joining...
-    socket.on('join', async (data) => {
-      Logger.info('⚡ Join Socket Triggered');
+    // Socket Connection...
+    socket.on('connection', async (data) => {
+      Logger.info('⚡ Connection Socket Triggered');
       const dataObj = {
         socketId: socket.id,
         senderId: data.senderId,
-        receiverId: data.receiverId,
       };
       const joinStatus = await onConnection(dataObj);
-      socket.join(data.roomId);
-      socket.emit('join-status', { online: joinStatus.isOnline });
+      socket.emit('join-status', joinStatus);
     });
+
+    // Join Conversation...
+    socket.on('joinConversation', async (data) => {
+      Logger.info('⚡ Join Conversation Socket Triggered');
+      const conversation = await joinConversation(data);
+      socket.join(data.roomId);
+      io.in(data.roomId).emit('conversation-status', conversation);
+
+      const recObj = {
+        senderId: data.senderId,
+        receiverId: data.userId,
+      };
+
+      const receivedMsg = await onReceived(recObj);
+      io.in(data.roomId).emit('received-status', receivedMsg);
+    });
+
+    // Receiving Message...
+    // socket.on('receivedMsg', async (data) => {
+    //   Logger.info('⚡ Join Socket Triggered');
+    //   const receivedMsg = await onReceived(data);
+    //   io.in(data.roomId).emit('received-status', receivedMsg);
+    // });
 
     // Typing...
     socket.on('typing', async (data) => {
@@ -42,17 +65,14 @@ export default () => {
     socket.on('message', async (data) => {
       Logger.info('⚡ Message Socket Triggered');
       const roomID = await onMessage(data);
-      console.log(roomID);
       if (roomID.length == 8) {
-        // && online &&
         // socket.join(roomID);
-        io.in(roomID).emit('message-status', data);
-      }
-    });
+        io.emit('message-status', data);
 
-    // Other Message...
-    socket.on('otherMessage', async (data) => {
-      Logger.info('⚡ Message Socket Triggered');
+        // New Unread Received Messages...
+        const receivedMsg = await onReceived(data);
+        io.emit('received-status', receivedMsg);
+      }
     });
 
     // Group Messaging...
