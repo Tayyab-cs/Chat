@@ -4,6 +4,7 @@ import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
 import { createToken } from '../../utils/helper/general.js';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 
 export const findByEmail = async (email) => {
   Logger.info('==> User Service...');
@@ -38,8 +39,9 @@ export const comparePassword = async (pass, hashedPass) => {
   return result;
 };
 
-export const getUserService = async () => {
-  const users = await models.User.findAll();
+export const fetchUserService = async (id) => {
+  Logger.info('Fetch Chat Service');
+  const users = await models.User.findAll({ where: { id: { [Op.not]: id } } });
   const user = users.map((data) => {
     return {
       id: data.id,

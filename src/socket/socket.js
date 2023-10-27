@@ -48,13 +48,6 @@ export default () => {
       io.in(data.roomId).emit('received-status', receivedMsg);
     });
 
-    // Receiving Message...
-    // socket.on('receivedMsg', async (data) => {
-    //   Logger.info('⚡ Join Socket Triggered');
-    //   const receivedMsg = await onReceived(data);
-    //   io.in(data.roomId).emit('received-status', receivedMsg);
-    // });
-
     // Typing...
     socket.on('typing', async (data) => {
       Logger.info('⚡ Typing Socket Triggered');
@@ -64,15 +57,13 @@ export default () => {
     // Messaging...
     socket.on('message', async (data) => {
       Logger.info('⚡ Message Socket Triggered');
-      const roomID = await onMessage(data);
-      if (roomID.length == 8) {
-        // socket.join(roomID);
-        io.emit('message-status', data);
+      const roomId = await onMessage(data);
+      console.log('Room Id:', roomId);
+      io.in(roomId).emit('message-status', data);
 
-        // New Unread Received Messages...
-        const receivedMsg = await onReceived(data);
-        io.emit('received-status', receivedMsg);
-      }
+      // New Unread Received Messages...
+      // const receivedMsg = await onReceived(data);
+      // io.emit('received-status', receivedMsg);
     });
 
     // Group Messaging...
@@ -95,17 +86,6 @@ export default () => {
       }
     });
 
-    // socket.on('create-group', async (data) => {
-    //   Logger.info('Group Socket Triggered');
-    //   const groupRoomId = await onCreateGroup(data);
-    //   socket.join(groupRoomId);
-    //   io.to(groupRoomId).emit('group-created', 'Group Created Successfully.');
-    // });
-    // socket.on('join-group', async (data) => {
-    //   Logger.info('Join Group Socket Triggered');
-    //   const group = await onJoinGroup(data);
-    //   console.log(group);
-    // });
     socket.on('disconnect', async () => {
       Logger.info('⚡Disconnect Socket Triggered');
       await onDisconnect(socket.id);

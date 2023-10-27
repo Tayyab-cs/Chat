@@ -15,7 +15,7 @@ import { decryptToken } from '../../middlewares/general.js';
 const route = express.Router();
 
 // Fetch Chat from DB...
-route.get('/fetchChat/:receiverId', decryptToken, fetchChat);
+route.get('/fetchChat/:conversationId', decryptToken, fetchChat);
 route.get('/unreadChat/:receiverId', decryptToken, unreadChat);
 
 // Group Routes...

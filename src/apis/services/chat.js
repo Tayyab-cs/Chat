@@ -170,6 +170,7 @@ export const getDashboardService = async (data) => {
     distinct: true,
   });
   userData = JSON.parse(JSON.stringify(userData));
+  console.log(userData);
 
   // mapping user conversations...
   const conversation = userData.conversations.map((data) => {
@@ -216,7 +217,12 @@ export const getDashboardService = async (data) => {
   return user[0];
 };
 
-export const fetchChatService = async (senderId, receiverId, page, limit) => {
+export const fetchChatService = async (
+  senderId,
+  conversationId,
+  page,
+  limit,
+) => {
   Logger.info('Fetch Chat Service Triggered');
 
   page = parseInt(page, 10);
@@ -225,24 +231,14 @@ export const fetchChatService = async (senderId, receiverId, page, limit) => {
   const offset = (page - 1) * limit;
 
   const user = await models.Message.findAll({
-    where: {
-      [Op.or]: [
-        { senderId: senderId, receiverId: receiverId },
-        { senderId: receiverId, receiverId: senderId },
-      ],
-    },
+    where: { conversationId: conversationId },
     limit: limit,
     offset: offset,
     order: [['createdAt', 'DESC']],
     raw: true,
   });
   const totalChat = await models.Message.findAll({
-    where: {
-      [Op.or]: [
-        { senderId: senderId, receiverId: receiverId },
-        { senderId: receiverId, receiverId: senderId },
-      ],
-    },
+    where: { conversationId: conversationId },
   });
   const count = totalChat.length;
 

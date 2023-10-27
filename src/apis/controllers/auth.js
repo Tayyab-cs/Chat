@@ -5,7 +5,7 @@ import {
   findUser,
   create,
   comparePassword,
-  getUserService,
+  fetchUserService,
   setAvatarService,
   validateToken,
 } from '../services/index.js';
@@ -71,10 +71,11 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const allUsers = async (req, res, next) => {
-  Logger.info('==> Get all users Controller');
+export const fetchUsers = async (req, res, next) => {
+  Logger.info('Get all users Controller');
+  const { id } = req.user;
   try {
-    const users = await getUserService();
+    const users = await fetchUserService(id);
     Logger.info('users fetched successfully...');
     return res.status(201).json({
       success: true,

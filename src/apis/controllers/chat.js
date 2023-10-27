@@ -140,11 +140,13 @@ export const dashboard = async (req, res, next) => {
 export const fetchChat = async (req, res, next) => {
   Logger.info('Fetch Chat Controller Triggered');
   const { id } = req.user;
-  const { receiverId } = req.params;
+  const { conversationId } = req.params;
   const { page, limit } = req.query;
 
+  console.log(id, conversationId);
+
   try {
-    const data = await fetchChatService(id, receiverId, page, limit);
+    const data = await fetchChatService(id, conversationId, page, limit);
     Logger.info('Chat fetched Successfully');
     return res.status(201).json({
       success: true,
