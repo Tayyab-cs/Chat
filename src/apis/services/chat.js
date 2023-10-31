@@ -161,27 +161,68 @@ export const createGroupService = async (userId, data) => {
 };
 
 export const joinGroupService = async (userId, data) => {
-  const { conversationId } = data;
+  Logger.info('Join Group Service Triggered');
 
+  const { conversationId } = data;
+  console.log(userId, conversationId);
+
+  // verifying group conversation...
   const group = await models.Conversation.findByPk(conversationId);
+  console.log('group: ', group);
   if (group.isGroup == false)
     throw errorObject('Group not exists!', 'notFound');
 
+  // checking user already joined or not...
   const user = await models.UserConversation.findOne({
-    where: { userId, conversationId },
+    where: { userId: userId, conversationId: conversationId },
   });
+  console.log('user: ', user);
   if (user)
     throw errorObject(
       `user with id ${userId} already joined the group.`,
       'duplication',
     );
 
+  // joining new user to group conversation...
   const userCon = await models.UserConversation.create({
     userId,
     conversationId,
   });
+  console.log('userCOn: ', userCon);
   if (!userCon) throw errorObject('Failed to Join');
+
+  const updateParticipants = await models.Conversation.update(
+    { participants: group.participants + 1 },
+    { where: { id: conversationId } },
+  );
+  console.log('updateParticipants', updateParticipants);
+
   return true;
+};
+
+export const leaveGroupService = async (userId, data) => {
+  Logger.info('Leave Group Service Triggered');
+  const { conversationId } = data;
+
+  // verifying group conversation...
+  const group = await models.Conversation.findByPk(conversationId);
+  if (group.isGroup == false)
+    throw errorObject('Group not exists!', 'notFound');
+
+  // removing user from group conversation...
+  const delUser = await models.UserConversation.destroy({
+    where: { userId: userId, conversationId: conversationId },
+  });
+  if (!delUser)
+    throw errorObject('Failed to leave the group or user not found!');
+
+  // updating participants in group conversation...
+  await models.Conversation.update(
+    { participants: group.participants - 1 },
+    { where: { id: conversationId } },
+  );
+
+  return delUser;
 };
 
 export const getGroupService = async (userId) => {
@@ -220,6 +261,49 @@ export const updateAdminService = async (userId, data) => {
   if (!updateAdmin) throw errorObject('Failed to Create Admin');
 
   return updateAdmin;
+};
+
+export const fetchGroupChatService = async (
+  senderId,
+  conversationId,
+  page,
+  limit,
+) => {
+  Logger.info('Fetch Group Chat Service Triggered');
+
+  page = parseInt(page, 10);
+  limit = parseInt(limit, 10);
+
+  const offset = (page - 1) * limit;
+
+  const userMsg = await models.Message.findAll({
+    where: { conversationId: conversationId },
+    include: [
+      {
+        attributes: ['id', 'userName', 'email', 'avatarImage'],
+        required: false,
+        model: models.User,
+        as: 'sender',
+      },
+    ],
+    limit: limit,
+    offset: offset,
+    order: [['createdAt', 'DESC']],
+  });
+  console.log(userMsg);
+
+  const totalChat = await models.Message.findAll({
+    where: { conversationId: conversationId },
+  });
+
+  const count = totalChat.length;
+
+  const data = {
+    userMsg,
+    count,
+  };
+
+  return data;
 };
 
 // CHANNEL APIS...

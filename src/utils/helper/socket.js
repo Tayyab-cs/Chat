@@ -215,24 +215,46 @@ export const onDisconnect = async (socketId) => {
 };
 
 export const onGroupMessage = async (data) => {
+  Logger.info('Group Message Method Socket Triggered');
+
   const { senderId, conversationId, message } = data;
 
+  // finding user...
+  const user = await models.User.findOne({ where: { id: senderId } });
+
+  // finding group conversation...
   const con = await models.Conversation.findOne({
     where: { id: conversationId },
   });
   if (!con || !con.isGroup) return Logger.error('Group not exists!');
 
+  // verifying user in group conversation...
   const userCon = await models.UserConversation.findOne({
     where: { userId: senderId, conversationId },
   });
   if (!userCon) return Logger.error('user not a member of group');
 
+  // saving message...
   await models.Message.create({
     senderId,
     conversationId,
     message,
   });
-  return con.roomId;
+
+  // returing object...
+  const result = {
+    senderId: senderId,
+    conversationId: conversationId,
+    message: message,
+    roomId: con.roomId,
+    sender: {
+      userName: user.userName,
+      email: user.email,
+      avatarImage: user.avatarImage,
+    },
+  };
+
+  return result;
 };
 
 export const onChannelMessage = async (data) => {

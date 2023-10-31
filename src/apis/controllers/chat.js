@@ -4,8 +4,10 @@ import {
   joinGroupService,
   createChannelService,
   joinChannelService,
+  leaveGroupService,
   updateAdminService,
   getGroupService,
+  fetchGroupChatService,
   getChannelService,
   getDashboardService,
   fetchChatService,
@@ -36,8 +38,6 @@ export const fetchChat = async (req, res, next) => {
   const { id } = req.user;
   const { conversationId } = req.params;
   const { page, limit } = req.query;
-
-  console.log(id, conversationId);
 
   try {
     const data = await fetchChatService(id, conversationId, page, limit);
@@ -99,6 +99,42 @@ export const joinGroup = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: 'Group Joined Successfully',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const leaveGroup = async (req, res, next) => {
+  Logger.info('Leave Group Controller Triggered');
+  const { id } = req.user;
+  try {
+    const group = await leaveGroupService(id, req.body);
+    if (!group) throw new Error('Failed to join!');
+    Logger.info('Group Leaved Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group Leaved Successfully',
+      result: group,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const fetchGroupChat = async (req, res, next) => {
+  Logger.info('Fetch Group Chat Controller Triggered');
+  const { id } = req.user;
+  const { conversationId } = req.params;
+  const { page, limit } = req.query;
+
+  try {
+    const data = await fetchGroupChatService(id, conversationId, page, limit);
+    Logger.info('Chat fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Chat fetched Successfully',
+      result: { data },
     });
   } catch (error) {
     return next(error);

@@ -59,9 +59,11 @@ export default () => {
 
       console.log('roomId: ', messageData.roomId);
 
-      socket.broadcast
-        .in(messageData.roomId)
-        .emit('message-status', messageData.message);
+      io.to(messageData.roomId).emit('message-status', {
+        senderId: messageData.senderId,
+        receiverId: messageData.receiverId,
+        message: messageData.message,
+      });
 
       // New Unread Received Messages...
       // const receivedMsg = await onReceived(data);
@@ -71,10 +73,10 @@ export default () => {
     // Group Messaging...
     socket.on('groupMessage', async (data) => {
       Logger.info('⚡ Group Message Socket Triggered');
-      const roomID = await onGroupMessage(data);
-      if (roomID.length == 8) {
-        socket.broadcast.to(roomID).emit('group-message-status', data);
-      }
+      console.log('group chat data: ', data);
+      const result = await onGroupMessage(data);
+      console.log('group roomid: ', result);
+      io.to(result.roomId).emit('group-status', result);
     });
 
     // Channel Messaging...
