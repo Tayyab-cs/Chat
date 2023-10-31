@@ -3,6 +3,7 @@ import {
   createGroupService,
   joinGroupService,
   createChannelService,
+  fetchInviteLinkService,
   joinChannelService,
   leaveGroupService,
   updateAdminService,
@@ -89,11 +90,28 @@ export const createGroup = async (req, res, next) => {
   }
 };
 
+export const fetchInviteLink = async (req, res, next) => {
+  Logger.info('Fetch Invite Link Controller Triggered');
+  const { id } = req.user;
+  try {
+    const data = await fetchInviteLinkService(id, req.params);
+    if (!data) throw new Error('Failed to fetch invite link!');
+    Logger.info('Link Fetch Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Link Fetch Successfully',
+      result: { data },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const joinGroup = async (req, res, next) => {
   Logger.info('Join Group Controller Triggered');
   const { id } = req.user;
   try {
-    const group = await joinGroupService(id, req.body);
+    const group = await joinGroupService(id, req.params);
     if (!group) throw new Error('Failed to join!');
     Logger.info('Group Joined Successfully');
     return res.status(201).json({

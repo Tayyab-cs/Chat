@@ -5,6 +5,7 @@ import {
   unreadChat,
   createGroup,
   joinGroup,
+  fetchInviteLink,
   getGroups,
   fetchGroupChat,
   updateAdmin,
@@ -24,11 +25,12 @@ route.get('/unreadChat/:receiverId', decryptToken, unreadChat);
 
 // Group Routes...
 route.post('/createGroup', decryptToken, createGroup);
-route.post('/joinGroup', decryptToken, joinGroup);
+route.post('/joinGroup/:code', decryptToken, joinGroup);
+route.get('/fetchInviteLink/:conversationId', decryptToken, fetchInviteLink);
 route.get('/getGroups', decryptToken, getGroups);
 route.get('/fetchGroupChat/:conversationId', decryptToken, fetchGroupChat);
 route.patch('/updateAdmin', decryptToken, updateAdmin);
-route.delete('/leaveGroup', decryptToken, leaveGroup);
+route.patch('/leaveGroup', decryptToken, leaveGroup);
 
 // Channel Routes...
 route.post('/createChannel', decryptToken, createChannel);

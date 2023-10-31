@@ -3,6 +3,8 @@ import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
 import { generateRoomID } from '../../utils/helper/index.js';
 import { Op, fn, literal } from 'sequelize';
+import { generateInvitationCode } from '../../utils/helper/inviteLink.js';
+import { EnvConfig } from '../../config/envConfig.js';
 
 // Fetch all single, group and channel chat...
 export const getDashboardService = async (data) => {
@@ -131,6 +133,10 @@ export const createGroupService = async (userId, data) => {
     return acc + cv;
   }, 1);
 
+  // Generating group Invitation Link...
+  const code = generateInvitationCode(groupName);
+  const inviteLink = `http://${EnvConfig.dbHost}:${EnvConfig.port}/${EnvConfig.api.prefix}/chat/joinGroup/${code}`;
+
   // Creating Group Conversation...
   const group = await models.Conversation.create({
     name: groupName,
@@ -138,6 +144,7 @@ export const createGroupService = async (userId, data) => {
     isGroup: true,
     roomId,
     participants: totalParticipants,
+    inviteLink,
   });
   if (!group) throw errorObject('Failed to create a group conversation');
 
@@ -160,21 +167,43 @@ export const createGroupService = async (userId, data) => {
   return group;
 };
 
+export const fetchInviteLinkService = async (userId, data) => {
+  Logger.info('Fetch Invite Link Service Triggered');
+
+  const { conversationId } = data;
+
+  // verifying user in group conversation...
+  const userCon = await models.UserConversation.findOne({
+    where: { userId: userId, conversationId: conversationId },
+  });
+  if (!userCon) throw errorObject('user not in group');
+
+  // finding group invite link...
+  const group = await models.Conversation.findOne({
+    where: { id: conversationId },
+    raw: true,
+  });
+
+  return group.inviteLink;
+};
+
 export const joinGroupService = async (userId, data) => {
   Logger.info('Join Group Service Triggered');
 
-  const { conversationId } = data;
-  console.log(userId, conversationId);
+  const { code } = data;
+  console.log(userId, code);
+
+  const inviteLink = `http://localhost:3002/api/chat/joinGroup/${code}`;
 
   // verifying group conversation...
-  const group = await models.Conversation.findByPk(conversationId);
+  const group = await models.Conversation.findOne({ where: { inviteLink } });
   console.log('group: ', group);
   if (group.isGroup == false)
     throw errorObject('Group not exists!', 'notFound');
 
   // checking user already joined or not...
   const user = await models.UserConversation.findOne({
-    where: { userId: userId, conversationId: conversationId },
+    where: { userId: userId, conversationId: group.id },
   });
   console.log('user: ', user);
   if (user)
@@ -186,14 +215,14 @@ export const joinGroupService = async (userId, data) => {
   // joining new user to group conversation...
   const userCon = await models.UserConversation.create({
     userId,
-    conversationId,
+    conversationId: group.id,
   });
   console.log('userCOn: ', userCon);
   if (!userCon) throw errorObject('Failed to Join');
 
   const updateParticipants = await models.Conversation.update(
     { participants: group.participants + 1 },
-    { where: { id: conversationId } },
+    { where: { id: group.id } },
   );
   console.log('updateParticipants', updateParticipants);
 
@@ -210,11 +239,28 @@ export const leaveGroupService = async (userId, data) => {
     throw errorObject('Group not exists!', 'notFound');
 
   // removing user from group conversation...
-  const delUser = await models.UserConversation.destroy({
+  let user = await models.UserConversation.findOne({
+    where: { userId: userId, conversationId: conversationId },
+    // raw: true,
+  });
+
+  user = JSON.parse(JSON.stringify(user));
+  console.log(user);
+  if (!user) throw errorObject('Failed to leave the group or user not found!');
+
+  // newAdmin...
+  if (user.isAdmin === true) {
+    const newAdmin = await models.UserConversation.update(
+      { isAdmin: true },
+      { where: { isAdmin: false }, limit: 1 },
+    );
+    console.log(newAdmin);
+  }
+
+  const leavedUser = await models.UserConversation.destroy({
     where: { userId: userId, conversationId: conversationId },
   });
-  if (!delUser)
-    throw errorObject('Failed to leave the group or user not found!');
+  console.log(leavedUser);
 
   // updating participants in group conversation...
   await models.Conversation.update(
@@ -222,7 +268,7 @@ export const leaveGroupService = async (userId, data) => {
     { where: { id: conversationId } },
   );
 
-  return delUser;
+  return leavedUser;
 };
 
 export const getGroupService = async (userId) => {

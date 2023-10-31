@@ -34,9 +34,14 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      inviteLink: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
+      },
     },
     {
-      paranoid: true,
+      // paranoid: true,
       freezeTableName: true,
     },
   );

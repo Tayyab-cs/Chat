@@ -24,7 +24,7 @@ export default (sequelize, DataTypes) => {
       },
     },
     {
-      paranoid: true,
+      // paranoid: true,
       freezeTableName: true,
     },
   );
