@@ -2,7 +2,7 @@ import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import {
-  onConnection,
+  onOnline,
   joinConversation,
   onReceived,
   onDisconnect,
@@ -19,47 +19,49 @@ export default () => {
   const io = new Server(httpServer, { cors: { origin: '*' } });
 
   io.on('connect', (socket) => {
-    Logger.info(`⚡ User Connected ⚡`);
+    // Logger.info(`⚡ User Connected ⚡`);
 
     // Socket Connection...
-    socket.on('connection', async (data) => {
-      Logger.info('⚡ Connection Socket Triggered');
+    socket.on('online', async (data) => {
+      Logger.info('⚡ Online Socket Triggered');
+      console.log('online Data: ', data);
       const dataObj = {
         socketId: socket.id,
         senderId: data.senderId,
       };
-      const joinStatus = await onConnection(dataObj);
-      socket.emit('join-status', joinStatus);
+      const onlineStatus = await onOnline(dataObj);
+      socket.emit('online-status', onlineStatus);
     });
 
     // Join Conversation...
     socket.on('joinConversation', async (data) => {
       Logger.info('⚡ Join Conversation Socket Triggered');
+      console.log('joinConversation Data: ', data);
       const conversation = await joinConversation(data);
+      console.log('Join Data: ', data);
       socket.join(data.roomId);
       io.in(data.roomId).emit('conversation-status', conversation);
 
-      const recObj = {
-        senderId: data.senderId,
-        receiverId: data.userId,
-      };
+      // const recObj = {
+      //   senderId: data.senderId,
+      //   receiverId: data.userId,
+      // };
 
-      const receivedMsg = await onReceived(recObj);
-      io.in(data.roomId).emit('received-status', receivedMsg);
-    });
-
-    // Typing...
-    socket.on('typing', async (data) => {
-      Logger.info('⚡ Typing Socket Triggered');
-      if (data.typing == true) io.emit('typing-status', data);
+      // const receivedMsg = await onReceived(recObj);
+      // io.in(data.roomId).emit('received-status', receivedMsg);
     });
 
     // Messaging...
     socket.on('message', async (data) => {
       Logger.info('⚡ Message Socket Triggered');
-      const roomId = await onMessage(data);
-      console.log('Room Id:', roomId);
-      io.in(roomId).emit('message-status', data);
+      console.log('Message Data: ', data);
+      const messageData = await onMessage(data);
+
+      console.log('roomId: ', messageData.roomId);
+
+      socket.broadcast
+        .in(messageData.roomId)
+        .emit('message-status', messageData.message);
 
       // New Unread Received Messages...
       // const receivedMsg = await onReceived(data);
@@ -67,12 +69,11 @@ export default () => {
     });
 
     // Group Messaging...
-    socket.on('group-message', async (data) => {
+    socket.on('groupMessage', async (data) => {
       Logger.info('⚡ Group Message Socket Triggered');
       const roomID = await onGroupMessage(data);
       if (roomID.length == 8) {
-        socket.join(roomID);
-        io.to(roomID).emit('group-message-status', data);
+        socket.broadcast.to(roomID).emit('group-message-status', data);
       }
     });
 

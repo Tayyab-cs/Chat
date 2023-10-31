@@ -3,11 +3,10 @@ import { models } from '../../config/dbConnection.js';
 import { sequelize } from '../../config/dbConnection.js';
 import { Op } from 'sequelize';
 
-export const onConnection = async (data) => {
+export const onOnline = async (data) => {
   const { socketId, senderId } = data;
+  const t = await sequelize.transaction();
   try {
-    const t = await sequelize.transaction();
-
     // find user...
     const user = await models.User.update(
       { socketId, isOnline: true },
@@ -16,13 +15,13 @@ export const onConnection = async (data) => {
     );
     if (!user) return Logger.error('Sender not Found!');
 
-    // const { count, rows } = await models.Message.findAndCountAll(
-    //   {
-    //     where: { receiverId: senderId, isRead: false },
-    //     order: [['createdAt', 'DESC']],
-    //   },
-    //   { transaction: t },
-    // );
+    const { count, rows } = await models.Message.findAndCountAll(
+      {
+        where: { receiverId: senderId, isRead: false },
+        order: [['createdAt', 'DESC']],
+      },
+      { transaction: t },
+    );
 
     await t.commit();
 
@@ -89,6 +88,7 @@ export const onMessage = async (data) => {
     where: { id: senderId },
     raw: true,
   });
+  console.log('senderId: ', sender.id);
   if (!sender) return Logger.error('sender not exists!');
 
   // Verify Conversation...
@@ -97,6 +97,7 @@ export const onMessage = async (data) => {
     raw: true,
   });
 
+  // finding receiver...
   const receiverId = await models.UserConversation.findOne({
     where: {
       conversationId: conversation.id,
@@ -106,6 +107,7 @@ export const onMessage = async (data) => {
     },
     raw: true,
   });
+  console.log('receiverId: ', receiverId.userId);
 
   // Create Message...
   const msg = await models.Message.create({
@@ -115,7 +117,14 @@ export const onMessage = async (data) => {
     message,
   });
 
-  return conversation.roomId;
+  const newData = {
+    senderId: sender.id,
+    receiverId: receiverId.userId,
+    message: message,
+    roomId: conversation.roomId,
+  };
+
+  return newData;
 
   // const conversationObj = {
   //   name: receiver.userName,

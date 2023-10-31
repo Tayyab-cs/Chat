@@ -4,119 +4,13 @@ import {
   joinGroupService,
   createChannelService,
   joinChannelService,
-  findUser,
+  updateAdminService,
   getGroupService,
   getChannelService,
   getDashboardService,
   fetchChatService,
   unreadChatService,
 } from '../services/index.js';
-
-// GROUP APIs
-export const createGroup = async (req, res, next) => {
-  Logger.info('Create Group Controller Triggered');
-  const { id } = req.user;
-  try {
-    const group = await createGroupService(req.body);
-    if (!group) throw new Error('Failed to create a group!');
-    Logger.info('Group Created Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Group Created Successfully',
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const joinGroup = async (req, res, next) => {
-  Logger.info('Join Group Controller Triggered');
-  try {
-    const group = await joinGroupService(req.body);
-    if (!group) throw new Error('Failed to join!');
-    Logger.info('Group Joined Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Group Joined Successfully',
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getGroups = async (req, res, next) => {
-  Logger.info('Get Group Controller Triggered');
-
-  try {
-    const data = await getGroupService(req.user);
-    Logger.info('Group fetched Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Group fetched Successfully',
-      result: { data },
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// CHANNEL APIs
-export const createChannel = async (req, res, next) => {
-  const { email } = req.user;
-  try {
-    const user = await findUser(email);
-    const channelData = {
-      creatorId: user.id,
-      ...req.body,
-    };
-    const channel = await createChannelService(channelData);
-    if (!channel) throw new Error('Failed to create a channel!');
-    Logger.info('Channel created Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Channel created Successfully',
-      result: channel,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const joinChannel = async (req, res, next) => {
-  const { email } = req.user;
-  try {
-    const user = await findUser(email);
-    const channelData = {
-      userId: user.id,
-      ...req.body,
-    };
-    const channel = await joinChannelService(channelData);
-    if (!channel) throw new Error('Failed to join a channel!');
-    Logger.info('Channel Joined Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Channel Joined Successfully',
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getChannels = async (req, res, next) => {
-  Logger.info('Get Channels Controller Triggered');
-  try {
-    const channels = await getChannelService(req.query);
-    console.log(channels);
-    Logger.info('Channels fetched Successfully');
-    return res.status(201).json({
-      success: true,
-      message: 'Channels fetched Successfully',
-      result: channels,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
 
 // DASHBOARD
 export const dashboard = async (req, res, next) => {
@@ -171,6 +65,124 @@ export const unreadChat = async (req, res, next) => {
       success: true,
       message: 'UnRead Chat fetched Successfully',
       result: { data },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// GROUP APIs
+export const createGroup = async (req, res, next) => {
+  Logger.info('Create Group Controller Triggered');
+  const { id } = req.user;
+  try {
+    const data = await createGroupService(id, req.body);
+    if (!data) throw new Error('Failed to create a group!');
+    Logger.info('Group Created Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group Created Successfully',
+      result: data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const joinGroup = async (req, res, next) => {
+  Logger.info('Join Group Controller Triggered');
+  const { id } = req.user;
+  try {
+    const group = await joinGroupService(id, req.body);
+    if (!group) throw new Error('Failed to join!');
+    Logger.info('Group Joined Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group Joined Successfully',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getGroups = async (req, res, next) => {
+  Logger.info('Get Group Controller Triggered');
+  const { id } = req.user;
+  try {
+    const data = await getGroupService(id);
+    Logger.info('Group fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group fetched Successfully',
+      result: { data },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateAdmin = async (req, res, next) => {
+  Logger.info('Create Admin Controller Triggered');
+  const { id } = req.user;
+
+  try {
+    const data = await updateAdminService(id, req.body);
+    Logger.info('Group fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group Admin Created Successfully',
+      result: { data },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// CHANNEL APIs
+export const createChannel = async (req, res, next) => {
+  Logger.info('Create Channel Controller Triggered');
+  const { id } = req.user;
+  try {
+    const data = await createChannelService(id, req.body);
+    if (!data) throw new Error('Failed to create a channel!');
+    Logger.info('Channel created Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Channel created Successfully',
+      result: data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const joinChannel = async (req, res, next) => {
+  Logger.info('Join Channel Controller Triggered');
+  const { id } = req.user;
+  try {
+    const data = await joinChannelService(id, req.body);
+    if (!data) throw new Error('Failed to join a channel!');
+    Logger.info('Channel Joined Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Channel Joined Successfully',
+      result: data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getChannels = async (req, res, next) => {
+  Logger.info('Get Channels Controller Triggered');
+  try {
+    const channels = await getChannelService(req.query);
+    console.log(channels);
+    Logger.info('Channels fetched Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Channels fetched Successfully',
+      result: channels,
     });
   } catch (error) {
     return next(error);

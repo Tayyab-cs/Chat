@@ -18,6 +18,10 @@ export default (sequelize, DataTypes) => {
           key: 'id',
         },
       },
+      isAdmin: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       paranoid: true,

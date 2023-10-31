@@ -28,7 +28,7 @@ export const errorHandler = (error, req, res, next) => {
       })
       .end();
   }
-  if (error.name === 'permission') {
+  if (error.name === 'forbidden') {
     return res
       .status(403)
       .json({
@@ -84,7 +84,8 @@ export const errorHandler = (error, req, res, next) => {
     .status(500)
     .json({
       success: false,
-      message: 'Unexpected internal server error!',
+      // message: 'Unexpected internal server error!',
+      message: error.message,
       details: error.details,
     })
     .end();

@@ -26,7 +26,7 @@ export const create = async (userData) => {
 };
 
 export const findUser = async (email) => {
-  Logger.info('==> User Service');
+  Logger.info('User Service');
   const user = await models.User.findOne({ where: { email } });
   if (!user) throw errorObject('User Not Found!', 'unAuthorized');
   return user;
