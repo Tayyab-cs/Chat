@@ -1,7 +1,7 @@
 import { Logger } from '../logger.js';
 import { models } from '../../config/dbConnection.js';
 import { sequelize } from '../../config/dbConnection.js';
-import { Op } from 'sequelize';
+import { Op, where } from 'sequelize';
 
 export const onOnline = async (data) => {
   const { socketId, senderId } = data;
@@ -17,7 +17,7 @@ export const onOnline = async (data) => {
 
     const { count, rows } = await models.Message.findAndCountAll(
       {
-        where: { receiverId: senderId, isRead: false },
+        where: { receiverId: senderId, status: 'delivered' },
         order: [['createdAt', 'DESC']],
       },
       { transaction: t },
@@ -55,12 +55,12 @@ export const joinConversation = async (data) => {
       where: { receiverId: userId },
     });
     await models.Message.update(
-      { isRead: true },
+      { status: 'seen' },
       {
         where: {
           receiverId: userId,
           conversationId: conversation.id,
-          isRead: false,
+          status: 'delivered',
         },
       },
       { transaction: t },
@@ -115,6 +115,7 @@ export const onMessage = async (data) => {
     receiverId: receiverId.userId,
     conversationId,
     message,
+    status: 'sent',
   });
 
   const newData = {
@@ -187,7 +188,7 @@ export const onReceived = async (data) => {
 
   try {
     const { count, rows } = await models.Message.findAndCountAll({
-      where: { receiverId, isRead: false },
+      where: { receiverId, status: 'delivered' },
       order: [['createdAt', 'DESC']],
     });
 
@@ -289,6 +290,58 @@ export const onChannelMessage = async (data) => {
   }
 
   return Logger.error('message not delivered!');
+};
+
+export const onMessageDelivered = async (data) => {
+  const { userId, conversationId } = data;
+
+  let userOnline = await models.User.findOne({ where: { id: userId } });
+
+  userOnline = JSON.parse(JSON.stringify(userOnline));
+  console.log(userOnline);
+
+  if (userOnline.isOnline === true) {
+    await models.Message.update(
+      { status: 'delivered' },
+      {
+        where: {
+          status: 'sent',
+          receiverId: userId,
+          conversationId: conversationId,
+        },
+      },
+    );
+    return true;
+  }
+};
+
+export const onMessageSeen = async (data) => {
+  const { userId, conversationId } = data;
+
+  let userOnline = await models.User.findOne({ where: { id: userId } });
+
+  userOnline = JSON.parse(JSON.stringify(userOnline));
+  console.log(userOnline);
+
+  let userCon = await models.UserConversation.findOne({
+    where: { userId: userId, conversationId: conversationId },
+  });
+  userCon = JSON.parse(JSON.stringify(userCon));
+  console.log(userCon);
+
+  if (userOnline.isOnline === true && userCon) {
+    await models.Message.update(
+      { status: 'seen' },
+      {
+        where: {
+          [Op.or]: [{ status: 'sent' }, { status: 'delivered' }],
+          receiverId: userId,
+          conversationId: conversationId,
+        },
+      },
+    );
+    return true;
+  }
 };
 
 // Generating Random Room ID.

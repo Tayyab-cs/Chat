@@ -11,6 +11,12 @@ export const getDashboardService = async (data) => {
   Logger.info('Get DashBoard service triggered');
   const { id } = data;
 
+  //updating messages sent to delivered...
+  await models.Message.update(
+    { status: 'delivered' },
+    { where: { receiverId: id, status: 'sent' } },
+  );
+
   // User...
   let userData = await models.User.findOne({
     where: { id },
@@ -24,7 +30,7 @@ export const getDashboardService = async (data) => {
             required: false,
             model: models.Message,
             as: 'messages',
-            where: { isRead: false },
+            where: { status: 'delivered' },
           },
         ],
       },
@@ -88,6 +94,7 @@ export const fetchChatService = async (
 
   const offset = (page - 1) * limit;
 
+  // fetching specific conversation messages...
   const user = await models.Message.findAll({
     where: { conversationId: conversationId },
     limit: limit,
@@ -95,6 +102,14 @@ export const fetchChatService = async (
     order: [['createdAt', 'DESC']],
     raw: true,
   });
+
+  // updating all messages delivered to seen...
+  await models.Message.update(
+    { status: 'seen' },
+    { where: { conversationId: conversationId } },
+  );
+
+  // count total messages....
   const totalChat = await models.Message.findAll({
     where: { conversationId: conversationId },
   });
@@ -116,7 +131,7 @@ export const unreadChatService = async (senderId, receiverId) => {
         { senderId: senderId, receiverId: receiverId },
         { senderId: receiverId, receiverId: senderId },
       ],
-      isRead: false,
+      status: 'delivered',
     },
   });
 
@@ -141,6 +156,7 @@ export const createGroupService = async (userId, data) => {
   const group = await models.Conversation.create({
     name: groupName,
     description,
+    type: 'private',
     isGroup: true,
     roomId,
     participants: totalParticipants,
@@ -191,13 +207,12 @@ export const joinGroupService = async (userId, data) => {
   Logger.info('Join Group Service Triggered');
 
   const { code } = data;
-  console.log(userId, code);
 
   const inviteLink = `http://localhost:3002/api/chat/joinGroup/${code}`;
 
   // verifying group conversation...
   const group = await models.Conversation.findOne({ where: { inviteLink } });
-  console.log('group: ', group);
+
   if (group.isGroup == false)
     throw errorObject('Group not exists!', 'notFound');
 
@@ -205,7 +220,7 @@ export const joinGroupService = async (userId, data) => {
   const user = await models.UserConversation.findOne({
     where: { userId: userId, conversationId: group.id },
   });
-  console.log('user: ', user);
+
   if (user)
     throw errorObject(
       `user with id ${userId} already joined the group.`,
@@ -217,14 +232,12 @@ export const joinGroupService = async (userId, data) => {
     userId,
     conversationId: group.id,
   });
-  console.log('userCOn: ', userCon);
   if (!userCon) throw errorObject('Failed to Join');
 
   const updateParticipants = await models.Conversation.update(
     { participants: group.participants + 1 },
     { where: { id: group.id } },
   );
-  console.log('updateParticipants', updateParticipants);
 
   return true;
 };
@@ -356,7 +369,7 @@ export const fetchGroupChatService = async (
 export const createChannelService = async (userId, data) => {
   Logger.info('Create Channel Service Triggered');
 
-  const { channelName, description, type, participants } = data;
+  const { channelName, description, participants } = data;
 
   const roomId = generateRoomID(8);
 
@@ -368,8 +381,7 @@ export const createChannelService = async (userId, data) => {
   const channel = await models.Conversation.create({
     name: channelName,
     description,
-    type,
-    isGroup: false,
+    type: 'public',
     isChannel: true,
     roomId,
     participants: totalParticipants,
@@ -430,13 +442,14 @@ export const getChannelService = async (userId) => {
   });
 
   // finding user and channels in userConversation...
-  const data = channels.filter(async (val) => {
+  let data = channels.filter(async (val) => {
     const channelId = val.id;
     const userInChannel = await models.UserConversation.findAll({
       where: { userId: userId, conversationId: channelId },
     });
     return userInChannel;
   });
+  data = JSON.parse(JSON.stringify(data));
   if (data.length === 0) return 'Their is no Channels!';
 
   return data;

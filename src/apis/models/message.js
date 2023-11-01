@@ -6,9 +6,9 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      isRead: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
     },
     {

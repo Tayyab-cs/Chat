@@ -231,7 +231,6 @@ export const getChannels = async (req, res, next) => {
   Logger.info('Get Channels Controller Triggered');
   try {
     const channels = await getChannelService(req.query);
-    console.log(channels);
     Logger.info('Channels fetched Successfully');
     return res.status(201).json({
       success: true,

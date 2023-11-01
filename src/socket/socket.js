@@ -8,6 +8,8 @@ import {
   onDisconnect,
   onGroupMessage,
   onMessage,
+  onMessageDelivered,
+  onMessageSeen,
   onChannelMessage,
 } from '../utils/helper/index.js';
 import { Logger } from '../utils/logger.js';
@@ -54,11 +56,7 @@ export default () => {
     // Messaging...
     socket.on('message', async (data) => {
       Logger.info('⚡ Message Socket Triggered');
-      console.log('Message Data: ', data);
       const messageData = await onMessage(data);
-
-      console.log('roomId: ', messageData.roomId);
-
       io.to(messageData.roomId).emit('message-status', {
         senderId: messageData.senderId,
         receiverId: messageData.receiverId,
@@ -68,6 +66,20 @@ export default () => {
       // New Unread Received Messages...
       // const receivedMsg = await onReceived(data);
       // io.emit('received-status', receivedMsg);
+    });
+
+    // Message Delivered status..
+    socket.on('messageDelivered', async (data) => {
+      Logger.info('⚡ messageDelievered Socket Triggered');
+      const msgDelivered = await onMessageDelivered(data);
+      socket.emit('delivered-status', 'message delivered successfully');
+    });
+
+    // Message Seen status..
+    socket.on('messageSeen', async (data) => {
+      Logger.info('⚡ messageSeen Socket Triggered');
+      const msgSeen = await onMessageSeen(data);
+      socket.emit('seen-status', 'message seen successfully');
     });
 
     // Group Messaging...
