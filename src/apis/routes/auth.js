@@ -13,6 +13,7 @@ import {
   decryptToken,
 } from '../../middlewares/index.js';
 
+// eslint-disable-next-line new-cap
 const route = express.Router();
 
 route.post('/signup', schemaValidate(validateSignUp), hashPassword, signUp);

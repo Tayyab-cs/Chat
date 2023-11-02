@@ -1,48 +1,48 @@
 export default (sequelize, DataTypes) => {
   const User = sequelize.define(
-    'User',
-    {
-      userName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
+      'User',
+      {
+        userName: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        email: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+          validate: {
+            isEmail: true,
+          },
+        },
+        password: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        isAvatarSet: {
+          type: DataTypes.BOOLEAN,
+          default: false,
+        },
+        avatarImage: {
+          type: DataTypes.STRING,
+          default: '',
+        },
+        socketId: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        // roomId: {
+        //   type: DataTypes.STRING,
+        //   allowNull: true,
+        // },
+        isOnline: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
         },
       },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      {
+        paranoid: true,
+        freezeTableName: true,
       },
-      isAvatarSet: {
-        type: DataTypes.BOOLEAN,
-        default: false,
-      },
-      avatarImage: {
-        type: DataTypes.STRING,
-        default: '',
-      },
-      socketId: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      // roomId: {
-      //   type: DataTypes.STRING,
-      //   allowNull: true,
-      // },
-      isOnline: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
-    },
-    {
-      paranoid: true,
-      freezeTableName: true,
-    },
   );
 
   return User;

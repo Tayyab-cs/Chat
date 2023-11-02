@@ -8,85 +8,85 @@ export const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'badRequest') {
     return res
-      .status(400)
-      .json({
-        success: false,
-        type: error.name,
-        message: error.message,
-        details: error.details,
-      })
-      .end();
+        .status(400)
+        .json({
+          success: false,
+          type: error.name,
+          message: error.message,
+          details: error.details,
+        })
+        .end();
   }
   if (error.name === 'unAuthorized') {
     return res
-      .status(401)
-      .json({
-        success: false,
-        type: error.name,
-        message: error.message,
-        details: error.details,
-      })
-      .end();
+        .status(401)
+        .json({
+          success: false,
+          type: error.name,
+          message: error.message,
+          details: error.details,
+        })
+        .end();
   }
   if (error.name === 'forbidden') {
     return res
-      .status(403)
-      .json({
-        success: false,
-        type: error.name,
-        message: error.message,
-        details: error.details,
-      })
-      .end();
+        .status(403)
+        .json({
+          success: false,
+          type: error.name,
+          message: error.message,
+          details: error.details,
+        })
+        .end();
   }
   if (error.name === 'duplication') {
     return res
-      .status(409)
-      .json({
-        success: false,
-        type: error.name,
-        message: error.message,
-        details: error.details,
-      })
-      .end();
+        .status(409)
+        .json({
+          success: false,
+          type: error.name,
+          message: error.message,
+          details: error.details,
+        })
+        .end();
   }
   if (error.name === 'notFound') {
     return res
-      .status(404)
+        .status(404)
+        .json({
+          success: false,
+          type: error.name,
+          message: error.message,
+          details: error.details,
+        })
+        .end();
+  }
+  if (error.name === 'delete') {
+    return res
+        .status(409)
+        .json({
+          success: false,
+          type: error.name,
+        })
+        .end();
+  }
+  if (error.isOperational) {
+    return res
+        .status(400)
+        .json({
+          success: false,
+          message: error.statusCode,
+        })
+        .end();
+  }
+
+  return res
+      .status(500)
       .json({
         success: false,
-        type: error.name,
+        // message: 'Unexpected internal server error!',
         message: error.message,
         details: error.details,
       })
       .end();
-  }
-  if (error.name === 'delete') {
-    return res
-      .status(409)
-      .json({
-        success: false,
-        type: error.name,
-      })
-      .end();
-  }
-  if (error.isOperational) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: error.statusCode,
-      })
-      .end();
-  }
-
-  return res
-    .status(500)
-    .json({
-      success: false,
-      // message: 'Unexpected internal server error!',
-      message: error.message,
-      details: error.details,
-    })
-    .end();
 };

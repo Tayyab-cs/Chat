@@ -4,7 +4,6 @@ import { createServer } from 'http';
 import {
   onOnline,
   joinConversation,
-  onReceived,
   onDisconnect,
   onGroupMessage,
   onMessage,
@@ -87,7 +86,6 @@ export default () => {
       Logger.info('⚡ Group Message Socket Triggered');
       console.log('group chat data: ', data);
       const result = await onGroupMessage(data);
-      console.log('group roomid: ', result);
       io.to(result.roomId).emit('group-status', result);
     });
 

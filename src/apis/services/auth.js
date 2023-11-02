@@ -57,8 +57,8 @@ export const fetchUserService = async (id) => {
 export const setAvatarService = async (userId, avatarImage) => {
   const user = await models.User.findOne({ where: { userId } });
   const updatedUser = await user.update(
-    { isAvatarSet: true, avatarImage },
-    { new: true },
+      { isAvatarSet: true, avatarImage },
+      { new: true },
   );
   return updatedUser;
 };

@@ -6,7 +6,8 @@ import Config from '../config/index.js';
 import { errorHandler } from '../middlewares/index.js';
 import router from '../apis/routes/index.js';
 
-export default async function ({ app }) {
+// eslint-disable-next-line require-jsdoc
+export default async ({ app }) => {
   // Verifying server status...
   app.get('/status', (req, res) => res.sendStatus(200).end());
   app.head('/status', (req, res) => res.sendStatus(200).end());
@@ -29,4 +30,4 @@ export default async function ({ app }) {
 
   // Error Handling Middleware...
   app.use(errorHandler);
-}
+};

@@ -4,6 +4,7 @@ import {
   fetchChat,
   unreadChat,
   createGroup,
+  joinGroupLink,
   joinGroup,
   fetchInviteLink,
   getGroups,
@@ -16,6 +17,7 @@ import {
 } from '../controllers/index.js';
 import { decryptToken } from '../../middlewares/general.js';
 
+// eslint-disable-next-line new-cap
 const route = express.Router();
 
 // Fetch Chat from DB...
@@ -25,7 +27,8 @@ route.get('/unreadChat/:receiverId', decryptToken, unreadChat);
 
 // Group Routes...
 route.post('/createGroup', decryptToken, createGroup);
-route.post('/joinGroup/:code', decryptToken, joinGroup);
+route.post('/joinGroup/:code', decryptToken, joinGroupLink);
+route.post('/joinGroup', decryptToken, joinGroup);
 route.get('/fetchInviteLink/:conversationId', decryptToken, fetchInviteLink);
 route.get('/getGroups', decryptToken, getGroups);
 route.get('/fetchGroupChat/:conversationId', decryptToken, fetchGroupChat);

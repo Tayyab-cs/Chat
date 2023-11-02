@@ -13,6 +13,7 @@ export const EnvConfig = {
   dbPass: process.env.DB_PASS,
   dbDialect: process.env.DB_DIALECT,
   jwtSecret: process.env.JWT_SECRET,
+  ip: process.env.IP,
   logs: {
     morgan: process.env.MORGAN,
   },

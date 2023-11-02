@@ -3,7 +3,7 @@ import Conversation from './conversation.js';
 import Message from './message.js';
 import UserConversation from './conversation.js';
 
-var Model = {
+const Model = {
   User,
   Conversation,
   Message,

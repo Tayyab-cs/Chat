@@ -1,4 +1,3 @@
-import Joi from 'joi';
 import { Logger } from '../utils/logger.js';
 import { errorObject } from '../utils/errorObject.js';
 

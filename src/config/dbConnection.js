@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import { DataTypes, Sequelize } from 'sequelize';
 import { Logger } from '../utils/logger.js';
 import { DBConfig } from './dbConfig.js';

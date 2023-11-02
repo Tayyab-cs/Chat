@@ -1,9 +1,11 @@
+/* eslint-disable indent */
 import express from 'express';
 import loaders from './loaders/index.js';
 import Config from './config/index.js';
 import { Logger } from './utils/logger.js';
 import socketIO from './socket/socket.js';
 
+// eslint-disable-next-line require-jsdoc
 async function startServer() {
   const app = express();
 

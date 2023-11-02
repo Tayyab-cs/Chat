@@ -1,6 +1,6 @@
 import { EnvConfig } from './envConfig.js';
 
-const { dbName, dbUser, dbHost, dbPass, dbDialect } = EnvConfig;
+const { dbName, dbUser, dbHost, dbDialect } = EnvConfig;
 
 export const DBConfig = {
   development: {

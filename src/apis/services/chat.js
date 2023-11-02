@@ -1,8 +1,9 @@
+/* eslint-disable indent */
 import { Logger } from '../../utils/logger.js';
 import { errorObject } from '../../utils/errorObject.js';
 import { models } from '../../config/dbConnection.js';
 import { generateRoomID } from '../../utils/helper/index.js';
-import { Op, fn, literal } from 'sequelize';
+import { Op } from 'sequelize';
 import { generateInvitationCode } from '../../utils/helper/inviteLink.js';
 import { EnvConfig } from '../../config/envConfig.js';
 
@@ -11,7 +12,7 @@ export const getDashboardService = async (data) => {
   Logger.info('Get DashBoard service triggered');
   const { id } = data;
 
-  //updating messages sent to delivered...
+  // updating messages sent to delivered...
   await models.Message.update(
     { status: 'delivered' },
     { where: { receiverId: id, status: 'sent' } },
@@ -150,7 +151,7 @@ export const createGroupService = async (userId, data) => {
 
   // Generating group Invitation Link...
   const code = generateInvitationCode(groupName);
-  const inviteLink = `http://${EnvConfig.dbHost}:${EnvConfig.port}/${EnvConfig.api.prefix}/chat/joinGroup/${code}`;
+  const inviteLink = `http://${EnvConfig.ip}:${EnvConfig.port}/${EnvConfig.api.prefix}/chat/joinGroup/${code}`;
 
   // Creating Group Conversation...
   const group = await models.Conversation.create({
@@ -177,8 +178,9 @@ export const createGroupService = async (userId, data) => {
 
   // Creating userConversation Records...
   const userCon = await models.UserConversation.bulkCreate(resultArray);
-  if (!userCon)
+  if (!userCon) {
     throw errorObject('Failed to add users in the group conversation');
+  }
 
   return group;
 };
@@ -203,29 +205,28 @@ export const fetchInviteLinkService = async (userId, data) => {
   return group.inviteLink;
 };
 
-export const joinGroupService = async (userId, data) => {
-  Logger.info('Join Group Service Triggered');
+export const joinGroupLinkService = async (userId, data) => {
+  Logger.info('Join Group with Link Service Triggered');
 
   const { code } = data;
 
-  const inviteLink = `http://localhost:3002/api/chat/joinGroup/${code}`;
+  const inviteLink = `http://${EnvConfig.ip}:${EnvConfig.port}/api/chat/joinGroup/${code}`;
 
   // verifying group conversation...
   const group = await models.Conversation.findOne({ where: { inviteLink } });
 
-  if (group.isGroup == false)
+  if (group.isGroup == false) {
     throw errorObject('Group not exists!', 'notFound');
+  }
 
   // checking user already joined or not...
   const user = await models.UserConversation.findOne({
     where: { userId: userId, conversationId: group.id },
   });
 
-  if (user)
-    throw errorObject(
-      `user with id ${userId} already joined the group.`,
-      'duplication',
-    );
+  if (user) {
+    throw errorObject(`you are already the group.`, 'duplication');
+  }
 
   // joining new user to group conversation...
   const userCon = await models.UserConversation.create({
@@ -234,12 +235,63 @@ export const joinGroupService = async (userId, data) => {
   });
   if (!userCon) throw errorObject('Failed to Join');
 
-  const updateParticipants = await models.Conversation.update(
+  await models.Conversation.update(
     { participants: group.participants + 1 },
     { where: { id: group.id } },
   );
 
   return true;
+};
+
+export const joinGroupService = async (userId, data) => {
+  const { conversationId, userIds } = data;
+
+  // verifying group...
+  const group = await models.Conversation.findOne({
+    where: { id: conversationId },
+  });
+  if (!group) throw errorObject('Group not Exists');
+
+  // verifying user how is inviting is admin or not...
+  const user = await models.UserConversation.findOne({
+    where: { userId: userId, conversationId: conversationId, isAdmin: true },
+  });
+  if (!user) throw errorObject('user must be admin', 'unAuthorized');
+
+  const userArr = [];
+  // merging userIds with conversationId...
+  const promises = userIds.map(async (userId) => {
+    // verifying user already in group or not...
+    const userInCon = await models.UserConversation.findOne({
+      where: { userId: userId, conversationId: conversationId },
+    });
+
+    if (!userInCon) {
+      const newUser = {
+        userId: userId,
+        conversationId: conversationId,
+      };
+
+      userArr.push(newUser);
+    }
+  });
+  await Promise.all(promises);
+
+  const newUsersCount = userArr.length;
+  console.log(newUsersCount);
+
+  // adding users to the group...
+  const addToGroup = await models.UserConversation.bulkCreate(userArr);
+  console.log(addToGroup);
+  if (!addToGroup) throw errorObject('Failed to Join');
+
+  // updating numbers of participants in the group...
+  await models.Conversation.update(
+    { participants: group.participants + newUsersCount },
+    { where: { id: conversationId } },
+  );
+
+  return addToGroup;
 };
 
 export const leaveGroupService = async (userId, data) => {
@@ -248,8 +300,9 @@ export const leaveGroupService = async (userId, data) => {
 
   // verifying group conversation...
   const group = await models.Conversation.findByPk(conversationId);
-  if (group.isGroup == false)
+  if (group.isGroup == false) {
     throw errorObject('Group not exists!', 'notFound');
+  }
 
   // removing user from group conversation...
   let user = await models.UserConversation.findOne({
@@ -309,8 +362,9 @@ export const updateAdminService = async (userId, data) => {
   const groupAdmin = await models.UserConversation.findOne({
     where: { userId: userId, conversationId: conversationId, isAdmin: true },
   });
-  if (!groupAdmin)
+  if (!groupAdmin) {
     throw errorObject('User is not authorized to create Admin', 'forbidden');
+  }
 
   // creating new admin...
   const updateAdmin = await models.UserConversation.update(
@@ -411,18 +465,20 @@ export const joinChannelService = async (data) => {
 
   const { userId, conversationId } = data;
   const channel = await models.Conversation.findByPk(conversationId);
-  if (channel.isChannel == false)
+  if (channel.isChannel == false) {
     throw errorObject('Channel not exists!', 'notFound');
+  }
 
   const user = await models.UserConversation.findOne({
     where: { userId, conversationId },
   });
 
-  if (user)
+  if (user) {
     throw errorObject(
       `user with id ${userId} already joined the group.`,
       'duplication',
     );
+  }
 
   const userCon = await models.UserConversation.create({
     userId,

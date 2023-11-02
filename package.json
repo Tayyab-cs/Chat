@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon app.js",
     "start": "node src/app.js",
-    "build": "jsc"
+    "build": "jsc",
+    "lint:fix": "eslint --fix **/*.js"
   },
   "author": "Muhammad Tayyab",
   "license": "ISC",
@@ -30,5 +31,9 @@
     "sequelize": "^6.32.1",
     "socket.io": "^4.7.2",
     "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.52.0",
+    "eslint-config-google": "^0.14.0"
   }
 }

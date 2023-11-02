@@ -1,8 +1,7 @@
+/* eslint-disable guard-for-in */
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import Config from '../../config/index.js';
 import { Logger } from '../logger.js';
-import { errorObject } from '../errorObject.js';
 
 export const createToken = (id, email) => {
   Logger.info('==> Create JWT Token...');

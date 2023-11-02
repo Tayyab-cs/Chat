@@ -1,7 +1,9 @@
+/* eslint-disable indent */
+// eslint-disable-next-line object-curly-spacing
 import { Logger } from '../logger.js';
 import { models } from '../../config/dbConnection.js';
 import { sequelize } from '../../config/dbConnection.js';
-import { Op, where } from 'sequelize';
+import { Op } from 'sequelize';
 
 export const onOnline = async (data) => {
   const { socketId, senderId } = data;
@@ -83,8 +85,6 @@ export const onMessage = async (data) => {
   const { senderId, conversationId, message } = data;
 
   try {
-    const roomId = generateRoomID(8);
-
     // Verify User...
     const sender = await models.User.findOne({
       where: { id: senderId },
@@ -94,7 +94,7 @@ export const onMessage = async (data) => {
     if (!sender) return Logger.error('sender not exists!');
 
     // Verify Conversation...
-    const [conversation, created] = await models.Conversation.findOrCreate({
+    const [conversation] = await models.Conversation.findOrCreate({
       where: { id: conversationId },
       raw: true,
     });
@@ -112,7 +112,7 @@ export const onMessage = async (data) => {
     console.log('receiverId: ', receiverId.userId);
 
     // Create Message...
-    const msg = await models.Message.create({
+    await models.Message.create({
       senderId,
       receiverId: receiverId.userId,
       conversationId,
@@ -173,6 +173,9 @@ export const onGroupMessage = async (data) => {
   const { senderId, conversationId, message } = data;
 
   try {
+    if (message === null) {
+      return Logger.error('message cannot be null');
+    }
     // finding user...
     const user = await models.User.findOne({ where: { id: senderId } });
 

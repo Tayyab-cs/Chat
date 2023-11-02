@@ -1,6 +1,7 @@
 import { Logger } from '../../utils/logger.js';
 import {
   createGroupService,
+  joinGroupLinkService,
   joinGroupService,
   createChannelService,
   fetchInviteLinkService,
@@ -107,11 +108,27 @@ export const fetchInviteLink = async (req, res, next) => {
   }
 };
 
+export const joinGroupLink = async (req, res, next) => {
+  Logger.info('Join Group with Link Controller Triggered');
+  const { id } = req.user;
+  try {
+    const group = await joinGroupLinkService(id, req.params);
+    if (!group) throw new Error('Failed to join!');
+    Logger.info('Group Joined Successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Group Joined Successfully',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const joinGroup = async (req, res, next) => {
   Logger.info('Join Group Controller Triggered');
   const { id } = req.user;
   try {
-    const group = await joinGroupService(id, req.params);
+    const group = await joinGroupService(id, req.body);
     if (!group) throw new Error('Failed to join!');
     Logger.info('Group Joined Successfully');
     return res.status(201).json({
