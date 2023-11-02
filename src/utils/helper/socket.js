@@ -81,104 +81,56 @@ export const joinConversation = async (data) => {
 
 export const onMessage = async (data) => {
   const { senderId, conversationId, message } = data;
-  const roomId = generateRoomID(8);
 
-  // Verify User...
-  const sender = await models.User.findOne({
-    where: { id: senderId },
-    raw: true,
-  });
-  console.log('senderId: ', sender.id);
-  if (!sender) return Logger.error('sender not exists!');
+  try {
+    const roomId = generateRoomID(8);
 
-  // Verify Conversation...
-  const [conversation, created] = await models.Conversation.findOrCreate({
-    where: { id: conversationId },
-    raw: true,
-  });
+    // Verify User...
+    const sender = await models.User.findOne({
+      where: { id: senderId },
+      raw: true,
+    });
+    console.log('senderId: ', sender.id);
+    if (!sender) return Logger.error('sender not exists!');
 
-  // finding receiver...
-  const receiverId = await models.UserConversation.findOne({
-    where: {
-      conversationId: conversation.id,
-      userId: {
-        [Op.not]: senderId,
+    // Verify Conversation...
+    const [conversation, created] = await models.Conversation.findOrCreate({
+      where: { id: conversationId },
+      raw: true,
+    });
+
+    // finding receiver...
+    const receiverId = await models.UserConversation.findOne({
+      where: {
+        conversationId: conversation.id,
+        userId: {
+          [Op.not]: senderId,
+        },
       },
-    },
-    raw: true,
-  });
-  console.log('receiverId: ', receiverId.userId);
+      raw: true,
+    });
+    console.log('receiverId: ', receiverId.userId);
 
-  // Create Message...
-  const msg = await models.Message.create({
-    senderId,
-    receiverId: receiverId.userId,
-    conversationId,
-    message,
-    status: 'sent',
-  });
+    // Create Message...
+    const msg = await models.Message.create({
+      senderId,
+      receiverId: receiverId.userId,
+      conversationId,
+      message,
+      status: 'sent',
+    });
 
-  const newData = {
-    senderId: sender.id,
-    receiverId: receiverId.userId,
-    message: message,
-    roomId: conversation.roomId,
-  };
+    const newData = {
+      senderId: sender.id,
+      receiverId: receiverId.userId,
+      message: message,
+      roomId: conversation.roomId,
+    };
 
-  return newData;
-
-  // const conversationObj = {
-  //   name: receiver.userName,
-  //   isGroup: false,
-  //   isChannel: false,
-  //   roomId,
-  // };
-
-  // const senderReceiver = await models.Message.findOne({
-  //   where: { senderId, receiverId },
-  // });
-
-  // // Creating New Conversation...
-  // if (!senderReceiver) {
-  //   const conversation = await models.Conversation.create(conversationObj);
-  //   const userCon = await models.UserConversation.bulkCreate([
-  //     {
-  //       userId: senderId,
-  //       conversationId: conversation.id,
-  //     },
-  //     {
-  //       userId: receiverId,
-  //       conversationId: conversation.id,
-  //     },
-  //   ]);
-
-  //   if (!conversation || !userCon)
-  //     return Logger.error('Conversation not created!');
-
-  //   // saving message...
-  //   await models.Message.create({
-  //     senderId,
-  //     receiverId,
-  //     message,
-  //     conversationId: conversation.id,
-  //   });
-  //   return conversation.roomId;
-  // }
-
-  // // Updating Existing Conversation...
-  // // const conversation = await models.Conversation.findOne({
-  // //   where: { id: senderReceiver.conversationId },
-  // // });
-
-  // // saving message...
-  // await models.Message.create({
-  //   senderId,
-  //   receiverId,
-  //   message,
-  //   conversationId: conversation.id,
-  // });
-
-  // return conversation.roomId;
+    return newData;
+  } catch (error) {
+    return Logger.error(error);
+  }
 };
 
 export const onReceived = async (data) => {
@@ -220,127 +172,150 @@ export const onGroupMessage = async (data) => {
 
   const { senderId, conversationId, message } = data;
 
-  // finding user...
-  const user = await models.User.findOne({ where: { id: senderId } });
+  try {
+    // finding user...
+    const user = await models.User.findOne({ where: { id: senderId } });
 
-  // finding group conversation...
-  const con = await models.Conversation.findOne({
-    where: { id: conversationId },
-  });
-  if (!con || !con.isGroup) return Logger.error('Group not exists!');
-
-  // verifying user in group conversation...
-  const userCon = await models.UserConversation.findOne({
-    where: { userId: senderId, conversationId },
-  });
-  if (!userCon) return Logger.error('user not a member of group');
-
-  // saving message...
-  await models.Message.create({
-    senderId,
-    conversationId,
-    message,
-  });
-
-  // returing object...
-  const result = {
-    senderId: senderId,
-    conversationId: conversationId,
-    message: message,
-    roomId: con.roomId,
-    sender: {
-      userName: user.userName,
-      email: user.email,
-      avatarImage: user.avatarImage,
-    },
-  };
-
-  return result;
-};
-
-export const onChannelMessage = async (data) => {
-  const { senderId, conversationId, message } = data;
-
-  const con = await models.Conversation.findOne({
-    where: { id: conversationId },
-  });
-  if (!con || !con.isChannel) return Logger.error('Channel not exists!');
-
-  if (con.type === 'public') {
-    await models.Message.create({
-      senderId,
-      conversationId,
-      message,
+    // finding group conversation...
+    const con = await models.Conversation.findOne({
+      where: { id: conversationId },
     });
-    return con.roomId;
-  }
+    if (!con || !con.isGroup) return Logger.error('Group not exists!');
 
-  if (con.type === 'private') {
+    // verifying user in group conversation...
     const userCon = await models.UserConversation.findOne({
       where: { userId: senderId, conversationId },
     });
     if (!userCon) return Logger.error('user not a member of group');
 
+    // saving message...
     await models.Message.create({
       senderId,
       conversationId,
       message,
     });
-    return con.roomId;
-  }
 
-  return Logger.error('message not delivered!');
+    // returing object...
+    const result = {
+      senderId: senderId,
+      conversationId: conversationId,
+      message: message,
+      roomId: con.roomId,
+      sender: {
+        userName: user.userName,
+        email: user.email,
+        avatarImage: user.avatarImage,
+      },
+    };
+
+    return result;
+  } catch (error) {
+    return Logger.error(error);
+  }
+};
+
+export const onChannelMessage = async (data) => {
+  const { senderId, conversationId, message } = data;
+
+  try {
+    const con = await models.Conversation.findOne({
+      where: { id: conversationId },
+    });
+    if (!con || !con.isChannel) return Logger.error('Channel not exists!');
+
+    if (con.type === 'public') {
+      await models.Message.create({
+        senderId,
+        conversationId,
+        message,
+      });
+      return con.roomId;
+    }
+
+    if (con.type === 'private') {
+      const userCon = await models.UserConversation.findOne({
+        where: { userId: senderId, conversationId },
+      });
+      if (!userCon) return Logger.error('user not a member of group');
+
+      await models.Message.create({
+        senderId,
+        conversationId,
+        message,
+      });
+      return con.roomId;
+    }
+
+    return Logger.error('message not delivered!');
+  } catch (error) {
+    return Logger.error(error);
+  }
 };
 
 export const onMessageDelivered = async (data) => {
   const { userId, conversationId } = data;
 
-  let userOnline = await models.User.findOne({ where: { id: userId } });
+  try {
+    let userOnline = await models.User.findOne({ where: { id: userId } });
 
-  userOnline = JSON.parse(JSON.stringify(userOnline));
-  console.log(userOnline);
+    userOnline = JSON.parse(JSON.stringify(userOnline));
 
-  if (userOnline.isOnline === true) {
-    await models.Message.update(
-      { status: 'delivered' },
-      {
-        where: {
-          status: 'sent',
-          receiverId: userId,
-          conversationId: conversationId,
+    if (userOnline.isOnline === true) {
+      await models.Message.update(
+        { status: 'delivered' },
+        {
+          where: {
+            status: 'sent',
+            receiverId: userId,
+            conversationId: conversationId,
+          },
         },
-      },
-    );
-    return true;
+      );
+      return {
+        userId: userId,
+        conversationId: conversationId,
+        isOnline: userOnline.isOnline,
+        message: 'message delivered successfully',
+      };
+    }
+  } catch (error) {
+    return Logger.error(error);
   }
 };
 
 export const onMessageSeen = async (data) => {
   const { userId, conversationId } = data;
 
-  let userOnline = await models.User.findOne({ where: { id: userId } });
+  try {
+    let userOnline = await models.User.findOne({ where: { id: userId } });
 
-  userOnline = JSON.parse(JSON.stringify(userOnline));
-  console.log(userOnline);
+    userOnline = JSON.parse(JSON.stringify(userOnline));
 
-  let userCon = await models.UserConversation.findOne({
-    where: { userId: userId, conversationId: conversationId },
-  });
-  userCon = JSON.parse(JSON.stringify(userCon));
-  console.log(userCon);
+    let userCon = await models.UserConversation.findOne({
+      where: { userId: userId, conversationId: conversationId },
+    });
+    userCon = JSON.parse(JSON.stringify(userCon));
 
-  if (userOnline.isOnline === true && userCon) {
-    await models.Message.update(
-      { status: 'seen' },
-      {
-        where: {
-          [Op.or]: [{ status: 'sent' }, { status: 'delivered' }],
-          receiverId: userId,
-          conversationId: conversationId,
+    if (userOnline.isOnline === true && userCon) {
+      await models.Message.update(
+        { status: 'seen' },
+        {
+          where: {
+            [Op.or]: [{ status: 'sent' }, { status: 'delivered' }],
+            receiverId: userId,
+            conversationId: conversationId,
+          },
         },
-      },
-    );
-    return true;
+      );
+      return {
+        userId: userId,
+        conversationId: conversationId,
+        isOnline: userOnline.isOnline,
+        message: 'message seen successfully',
+      };
+    }
+  } catch (error) {
+    return Logger.error(error);
   }
 };
 

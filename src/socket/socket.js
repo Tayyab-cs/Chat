@@ -72,14 +72,14 @@ export default () => {
     socket.on('messageDelivered', async (data) => {
       Logger.info('⚡ messageDelievered Socket Triggered');
       const msgDelivered = await onMessageDelivered(data);
-      socket.emit('delivered-status', 'message delivered successfully');
+      socket.emit('delivered-status', msgDelivered);
     });
 
     // Message Seen status..
     socket.on('messageSeen', async (data) => {
       Logger.info('⚡ messageSeen Socket Triggered');
       const msgSeen = await onMessageSeen(data);
-      socket.emit('seen-status', 'message seen successfully');
+      socket.emit('seen-status', msgSeen);
     });
 
     // Group Messaging...
