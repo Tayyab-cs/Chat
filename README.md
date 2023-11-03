@@ -37,17 +37,15 @@ Before you begin, ensure you have the following installed on your system:
 
 You will also need to create a `.env` file in the root directory of this project with the necessary environment variables for connecting to your database.
 
-`IP`= user pc Ip which is used for running on different machine locally.
-`PORT`= Port to run express in this project `3002` port is used.
-`MORGAN`= `dev` use this.
-
-`DB_NAME`= your Database name.
-`DB_USER`= your Database user. Default user is `root`.
-`DB_HOST`= your Database host. Default host is `localhost`.
-`DB_PASS`= your Database password. Default password is `null`.
-`DB_DIALECT`= your Database dialect. In this project we are using `mysql`.
-
-`JWT_SECRET`= Set your JWT secret.
+- `IP`= user pc Ip which is used for running on different machine locally.
+- `PORT`= Port to run express in this project `3002` port is used.
+- `MORGAN`= `dev` use this.
+- `DB_NAME`= your Database name.
+- `DB_USER`= your Database user. Default user is `root`.
+- `DB_HOST`= your Database host. Default host is `localhost`.
+- `DB_PASS`= your Database password. Default password is `null`.
+- `DB_DIALECT`= your Database dialect. In this project we are using `mysql`.
+- `JWT_SECRET`= Set your JWT secret.
 
 ## Getting Started
 
@@ -102,39 +100,39 @@ The server will be running at `http://localhost:3002`.
 
 ### Auth Endpoints
 
-- $${\color{orange}POST}$$ /api/user/signup: Register a new user.
-- $${\color{orange}POST}$$ /api/user/login: User login with authentication token generation.
-- $${\color{orange}POST}$$ /api/user/setAvatar: set user profile avatar.
-- $${\color{green}GET}$$ /api/user/users: Fetch all registered users.
-- $${\color{green}GET}$$ /api/user/validate: Validating the access token.
+- `POST` /api/user/signup: Register a new user.
+- `POST` /api/user/login: User login with authentication token generation.
+- `POST` /api/user/setAvatar: set user profile avatar.
+- `GET` /api/user/users: Fetch all registered users.
+- `GET` /api/user/validate: Validating the access token.
 
 ### Chat Endpoints
 
-- $${\color{green}GET}$$ /api/chat/dashboard: Fetch all conversations of user.
-- $${\color{green}GET}$$ /api/chat/fetchChat/:id: Fetch specific conversation of user.
-- $${\color{green}GET}$$ /api/chat/unreadChat/:id: Fetch unread messages.
-- $${\color{orange}POST}$$ /api/chat/createGroup: Create group conversation.
-- $${\color{orange}POST}$$ /api/chat/joinGroup/:code: Join group with inviteLink.
-- $${\color{orange}POST}$$ /api/chat/joinGroup: Join group by admin.
-- $${\color{green}GET}$$ /api/chat/fetchInviteLink/:id: Fetch group invite link.
-- $${\color{green}GET}$$ /api/chat/getGroups: Fetch all groups related to specific user.
-- $${\color{green}GET}&& /api/chat/fetchGroupChat/:id: Fetch specific group chat.
-- $${\color{purple}PATCH}$$ /api/chat/updateAdmin: Update group admin role.
-- $${\color{purple}PATCH}$$ /api/chat/leaveGroup: Leave group conversation.
-- $${\color{orange}POST}$$ /api/chat/createChannel: Create channel conversation.
-- $${\color{orange}POST}$$ /api/chat/joinChannel: Join channel conversation.
-- $${\color{green}GET}$$ /api/chat/getChannels: Fetch all channels.
+- `GET` /api/chat/dashboard: Fetch all conversations of user.
+- `GET` /api/chat/fetchChat/:id: Fetch specific conversation of user.
+- `GET` /api/chat/unreadChat/:id: Fetch unread messages.
+- `POST` /api/chat/createGroup: Create group conversation.
+- `POST` /api/chat/joinGroup/:code: Join group with inviteLink.
+- `POST` /api/chat/joinGroup: Join group by admin.
+- `GET` /api/chat/fetchInviteLink/:id: Fetch group invite link.
+- `GET` /api/chat/getGroups: Fetch all groups related to specific user.
+- `GET` /api/chat/fetchGroupChat/:id: Fetch specific group chat.
+- `PATCH` /api/chat/updateAdmin: Update group admin role.
+- `PATCH` /api/chat/leaveGroup: Leave group conversation.
+- `POST` /api/chat/createChannel: Create channel conversation.
+- `POST` /api/chat/joinChannel: Join channel conversation.
+- `GET` /api/chat/getChannels: Fetch all channels.
 
 ## Socket.io Events
 
-- 'online': Update user status to online.
-- 'joinConversation': Triggered when user in specific conversation chat.
-- 'message': Triggered when user sends message to another user.
-- 'messageDelivered': Message status updated to delivered when user comes online.
-- 'messageSeen': Message status updated to seen when user comes in specific conversation.
-- 'groupMessage': Triggered when user message in a specific group.
-- 'channelMessage': Triggered when user message in a specific channel.
-- 'disconnect': Triggered when user goes offline and updated status to offline.
+- `online`: Update user status to online.
+- `joinConversation`: Triggered when user in specific conversation chat.
+- `message`: Triggered when user sends message to another user.
+- `messageDelivered`: Message status updated to delivered when user comes online.
+- `messageSeen`: Message status updated to seen when user comes in specific conversation.
+- `groupMessage`: Triggered when user message in a specific group.
+- `channelMessage`: Triggered when user message in a specific channel.
+- `disconnect`: Triggered when user goes offline and updated status to offline.
 
 Feel free to explore the codebase and customize the application further to meet your specific requirements. If you have any questions or need assistance, please don't hesitate to reach out.
 
